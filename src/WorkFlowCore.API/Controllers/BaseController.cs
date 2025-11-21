@@ -12,15 +12,21 @@ namespace WorkFlowCore.API.Controllers;
 public abstract class BaseController : ControllerBase
 {
     /// <summary>
-    /// 当前租户ID（从请求头或认证信息中获取）
+    /// 测试租户ID（MVP阶段临时使用）
     /// </summary>
-    protected Guid? CurrentTenantId
+    protected static readonly Guid TestTenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+    /// <summary>
+    /// 当前租户ID（从请求头或认证信息中获取）
+    /// MVP阶段：如果没有提供租户ID，使用测试租户ID
+    /// </summary>
+    protected Guid CurrentTenantId
     {
         get
         {
             if (HttpContext == null)
             {
-                return null;
+                return TestTenantId;
             }
 
             if (HttpContext.Request.Headers.TryGetValue("X-Tenant-Id", out var tenantIdValues) &&
@@ -32,7 +38,13 @@ public abstract class BaseController : ControllerBase
             var tenantClaim = HttpContext.User?.FindFirst("tenant_id")?.Value ??
                               HttpContext.User?.FindFirst("tenantId")?.Value;
 
-            return Guid.TryParse(tenantClaim, out var tenantIdFromClaim) ? tenantIdFromClaim : null;
+            if (Guid.TryParse(tenantClaim, out var tenantIdFromClaim))
+            {
+                return tenantIdFromClaim;
+            }
+
+            // MVP阶段：返回测试租户ID
+            return TestTenantId;
         }
     }
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using WorkFlowCore.API;
 using WorkFlowCore.API.Middleware;
 using WorkFlowCore.Infrastructure.Data;
 using WorkFlowCore.Infrastructure.Repositories;
@@ -55,6 +56,7 @@ builder.Services.AddScoped(typeof(IPagedRepository<>), typeof(PagedRepository<>)
 builder.Services.AddScoped<WorkFlowCore.Application.Services.ITenantService, WorkFlowCore.Infrastructure.Services.TenantService>();
 builder.Services.AddScoped<WorkFlowCore.Application.Services.IUserService, WorkFlowCore.Infrastructure.Services.UserService>();
 builder.Services.AddScoped<WorkFlowCore.Application.Services.IDepartmentService, WorkFlowCore.Infrastructure.Services.DepartmentService>();
+builder.Services.AddScoped<WorkFlowCore.Application.Services.IProcessDefinitionService, WorkFlowCore.Infrastructure.Services.ProcessDefinitionService>();
 
 // 注册 JWT 服务
 builder.Services.AddSingleton(sp => new JwtService(
@@ -83,6 +85,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// 初始化数据库和测试数据
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<WorkFlowDbContext>();
+    await DbInitializer.InitializeAsync(context);
+}
+
 // 全局异常处理中间件（必须在最前面）
 app.UseExceptionHandling();
 
@@ -98,8 +107,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
-app.UseAuthentication();
-app.UseAuthorization();
+// MVP阶段：临时禁用认证和授权
+// app.UseAuthentication();
+// app.UseAuthorization();
 
 // 健康检查端点
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
