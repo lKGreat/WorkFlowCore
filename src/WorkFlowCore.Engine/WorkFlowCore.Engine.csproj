@@ -4,6 +4,10 @@
     <ProjectReference Include="..\WorkFlowCore.Domain\WorkFlowCore.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="WorkflowCore" Version="3.17.0" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
