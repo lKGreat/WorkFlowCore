@@ -1,0 +1,359 @@
+# WorkFlowCore 项目 Cursor Rules
+
+## 项目概述
+WorkFlowCore 是一个基于 C# .NET 10.0 和 React 19 的工作流审批系统，采用 Clean Architecture 分层架构，支持多租户和软删除。
+
+## 项目结构
+
+### 后端结构（C# .NET 10.0）
+```
+src/
+├── WorkFlowCore.API/              # API 层 - Web API 控制器、中间件、配置
+├── WorkFlowCore.Application/       # 应用层 - DTOs、服务接口、映射配置
+├── WorkFlowCore.Domain/            # 领域层 - 实体、值对象、领域接口
+├── WorkFlowCore.Infrastructure/   # 基础设施层 - 数据访问、仓储实现、外部服务
+└── WorkFlowCore.Engine/            # 工作流引擎层 - 流程定义、实例管理、任务分配
+```
+
+### 前端结构（React + TypeScript）
+```
+frontend/
+├── src/
+│   ├── components/                # React 组件目录
+│   │   └── ProcessDesigner.tsx    # 流程设计器组件
+│   ├── assets/                    # 静态资源（图片、图标等）
+│   ├── App.tsx                    # 主应用组件（根组件）
+│   ├── App.css                    # 应用样式
+│   ├── main.tsx                   # 应用入口文件
+│   └── index.css                  # 全局样式
+├── public/                        # 公共静态资源
+├── index.html                     # HTML 模板
+├── vite.config.ts                 # Vite 构建配置
+├── tsconfig.json                   # TypeScript 主配置
+├── tsconfig.app.json               # TypeScript 应用配置
+├── tsconfig.node.json              # TypeScript Node 配置
+├── eslint.config.js                # ESLint 配置
+└── package.json                    # 依赖管理
+```
+
+### 测试结构
+```
+tests/
+├── WorkFlowCore.Domain.Tests/     # 领域层单元测试
+└── WorkFlowCore.Engine.Tests/     # 引擎层单元测试
+```
+
+## 技术栈
+
+### 后端
+- **框架**: .NET 10.0 (C# 12)
+- **ORM**: Entity Framework Core 10.0
+- **数据库**: SQLite
+- **认证**: JWT Bearer Token
+- **映射**: AutoMapper
+- **工作流引擎**: WorkflowCore 3.17.0
+- **API 文档**: Swashbuckle (Swagger)
+
+### 前端
+- **框架**: React 19.2.0
+- **语言**: TypeScript 5.9
+- **构建工具**: Vite 7.2
+- **UI 库**: Ant Design 5.29
+- **流程设计器**: React Flow (@xyflow/react) 12.9
+- **路由**: React Router DOM 7.9
+- **HTTP 客户端**: Axios 1.13
+
+## 编码规范
+
+### C# 编码规范
+1. **命名空间**: 使用文件作用域命名空间 (`namespace WorkFlowCore.XXX;`)
+2. **可空引用类型**: 项目已启用可空引用类型 (`<Nullable>enable</Nullable>`)
+3. **XML 注释**: 所有公共类、方法、属性必须添加 XML 文档注释 (`/// <summary>`)
+4. **命名约定**:
+   - 类名: PascalCase (如 `ProcessDefinition`)
+   - 方法名: PascalCase (如 `StartProcessAsync`)
+   - 属性名: PascalCase (如 `TenantId`)
+   - 私有字段: camelCase (如 `_repository`)
+   - 接口名: 以 `I` 开头 (如 `IWorkflowEngine`)
+5. **异步方法**: 异步方法必须以 `Async` 结尾，返回 `Task` 或 `Task<T>`
+6. **实体基类**: 所有实体继承 `Entity<TKey>`，包含 `Id`, `CreatedAt`, `UpdatedAt`
+7. **多租户**: 实体实现 `ITenantEntity` 接口，包含 `TenantId` 属性
+8. **软删除**: 实体实现 `ISoftDelete` 接口，包含 `IsDeleted`, `DeletedAt` 属性
+
+### TypeScript/React 编码规范
+
+#### 文件命名
+1. **组件文件**: 使用 PascalCase，与组件名一致 (如 `ProcessDesigner.tsx`)
+2. **工具文件**: 使用 camelCase (如 `apiClient.ts`)
+3. **类型文件**: 使用 camelCase，通常以 `.types.ts` 结尾 (如 `workflow.types.ts`)
+4. **样式文件**: 与组件同名，使用 `.css` 或 `.module.css` (如 `App.css`)
+
+#### 组件规范
+1. **组件定义**: 
+   - 使用函数组件，避免类组件
+   - 使用 `React.FC` 或直接函数声明
+   - 组件名使用 PascalCase
+   ```typescript
+   export const ProcessDesigner: React.FC = () => { ... }
+   // 或
+   export function ProcessDesigner() { ... }
+   ```
+
+2. **Props 类型**:
+   - 使用 TypeScript 类型定义 Props
+   - Props 接口命名: `ComponentNameProps`
+   ```typescript
+   type ProcessDesignerProps = {
+     onSave?: (data: ProcessData) => void;
+   };
+   ```
+
+3. **导入顺序** (严格遵循):
+   ```typescript
+   // 1. React 相关
+   import React, { useState, useEffect } from 'react';
+   
+   // 2. 第三方库（按字母顺序）
+   import { Button, Space, message } from 'antd';
+   import { ReactFlow, useNodesState } from '@xyflow/react';
+   
+   // 3. 本地组件
+   import { ProcessDesigner } from './components/ProcessDesigner';
+   
+   // 4. 类型定义
+   import type { Node, Edge } from '@xyflow/react';
+   
+   // 5. 工具函数和常量
+   import { API_BASE_URL } from './constants';
+   
+   // 6. 样式文件（最后）
+   import './App.css';
+   ```
+
+#### Hooks 使用规范
+1. **useState**: 
+   - 使用函数式更新避免闭包问题
+   - 复杂状态考虑使用 `useReducer`
+   ```typescript
+   const [count, setCount] = useState(0);
+   setCount(prev => prev + 1); // 推荐
+   ```
+
+2. **useCallback**: 
+   - 用于优化回调函数，避免不必要的重渲染
+   - 依赖数组必须完整
+   ```typescript
+   const onConnect = useCallback(
+     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+     [setEdges]
+   );
+   ```
+
+3. **useEffect**: 
+   - 清理副作用（取消订阅、清理定时器等）
+   - 依赖数组必须完整，避免无限循环
+
+#### 类型定义规范
+1. **优先使用 `type` 而非 `interface`** (除非需要扩展)
+   ```typescript
+   type ProcessData = {
+     nodes: Node[];
+     edges: Edge[];
+   };
+   ```
+
+2. **使用联合类型和字面量类型**:
+   ```typescript
+   type Status = 'pending' | 'approved' | 'rejected';
+   ```
+
+3. **使用泛型提高复用性**:
+   ```typescript
+   type ApiResponse<T> = {
+     success: boolean;
+     data: T;
+   };
+   ```
+
+#### 命名约定
+1. **变量/函数**: camelCase (`processData`, `handleSave`)
+2. **组件**: PascalCase (`ProcessDesigner`, `UserList`)
+3. **常量**: UPPER_SNAKE_CASE (`API_BASE_URL`, `MAX_RETRY_COUNT`)
+4. **私有函数**: 以 `_` 开头或使用 `useCallback` 封装
+
+#### 代码风格
+1. **使用可选链和空值合并**:
+   ```typescript
+   const name = user?.name ?? 'Unknown';
+   ```
+
+2. **使用解构赋值**:
+   ```typescript
+   const { nodes, edges } = processData;
+   ```
+
+3. **避免使用 `any`**: 使用 `unknown` 或具体类型
+4. **使用严格模式**: TypeScript 配置已启用 `strict: true`
+
+## 架构原则
+
+### 分层职责
+1. **API 层**: 
+   - 仅负责 HTTP 请求/响应处理
+   - 使用 `BaseController` 作为所有控制器的基类
+   - 统一使用 `ApiResponse<T>` 作为响应格式
+   - 通过依赖注入获取服务
+
+2. **Application 层**:
+   - 包含业务逻辑和用例
+   - 定义服务接口 (`IService`)
+   - 定义 DTOs 用于数据传输
+   - 使用 AutoMapper 进行实体与 DTO 映射
+
+3. **Domain 层**:
+   - 包含核心业务实体和领域逻辑
+   - 不依赖其他层
+   - 实体继承 `Entity<TKey>` 基类
+   - 实现 `ITenantEntity` 和 `ISoftDelete` 接口
+
+4. **Infrastructure 层**:
+   - 实现数据访问（EF Core DbContext）
+   - 实现仓储模式 (`IRepository<T>`, `IPagedRepository<T>`)
+   - 实现应用层服务接口
+   - 包含数据库迁移
+
+5. **Engine 层**:
+   - 工作流引擎核心逻辑
+   - 流程定义解析和管理
+   - 流程实例执行
+   - 任务分配策略
+
+### 依赖方向
+- API → Application → Domain
+- Infrastructure → Domain
+- Engine → Domain
+- **禁止**: Domain 依赖其他层
+
+## 数据库设计
+
+### 实体关系
+- `Tenant` (租户) - 多租户根实体
+- `User` (用户) - 属于租户
+- `Department` (部门) - 属于租户
+- `Role` (角色) - 属于租户
+- `ProcessDefinition` (流程定义) - 属于租户
+- `ProcessInstance` (流程实例) - 关联流程定义
+- `TaskInstance` (任务实例) - 关联流程实例
+
+### 数据库约定
+- 使用 EF Core Code First 迁移
+- 表名使用复数形式（如 `ProcessDefinitions`）
+- 所有实体自动包含审计字段 (`CreatedAt`, `UpdatedAt`)
+- 软删除实体自动应用全局查询过滤器
+- 索引配置在 `OnModelCreating` 中
+
+## API 设计规范
+
+### 响应格式
+所有 API 响应使用统一的 `ApiResponse<T>` 格式：
+```csharp
+{
+  "success": true,
+  "message": "操作成功",
+  "data": { ... },
+  "errorCode": null,
+  "timestamp": 1234567890
+}
+```
+
+### 路由约定
+- 控制器路由: `api/[controller]`
+- RESTful 风格: GET/POST/PUT/DELETE
+- 异步方法: 所有 API 方法必须是异步的
+
+### 认证授权
+- 使用 JWT Bearer Token 认证
+- 从 `BaseController.CurrentTenantId` 获取租户上下文
+- 从 `BaseController.CurrentUserId` 获取用户上下文
+
+## 工作流引擎
+
+### 流程定义
+- 支持 JSON 和 BPMN 格式
+- 流程定义存储在 `ProcessDefinition` 实体中
+- 使用 WorkflowCore 引擎执行流程
+
+### 流程步骤
+- `ApprovalStep`: 审批步骤
+- `ConditionStep`: 条件判断步骤
+- `NotificationStep`: 通知步骤
+
+## 前端开发规范
+
+### 组件结构
+- 使用函数组件和 Hooks
+- 组件文件包含组件定义和样式（如需要）
+- 使用 Ant Design 组件库
+
+### 流程设计器
+- 使用 React Flow 实现可视化流程设计
+- 组件: `ProcessDesigner.tsx`
+
+### API 调用
+- 使用 Axios 进行 HTTP 请求
+- 统一处理错误和响应格式
+
+## 测试规范
+
+### 单元测试
+- 测试项目位于 `tests/` 目录
+- 每个层都有对应的测试项目
+- 使用 xUnit 测试框架（默认）
+
+## 开发工作流
+
+### 添加新功能
+1. 在 Domain 层定义实体（如需要）
+2. 在 Application 层定义 DTO 和服务接口
+3. 在 Infrastructure 层实现服务
+4. 在 API 层创建控制器
+5. 更新数据库迁移（如需要）
+6. 编写单元测试
+
+### 数据库迁移
+```bash
+dotnet ef migrations add MigrationName --project src/WorkFlowCore.Infrastructure --startup-project src/WorkFlowCore.API
+dotnet ef database update --project src/WorkFlowCore.Infrastructure --startup-project src/WorkFlowCore.API
+```
+
+### 前端开发
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## 注意事项
+
+1. **多租户隔离**: 所有查询必须考虑租户隔离，使用 `TenantId` 过滤
+2. **软删除**: 删除操作使用软删除，不物理删除数据
+3. **审计字段**: 创建和更新时自动设置 `CreatedAt` 和 `UpdatedAt`
+4. **异常处理**: 使用全局异常处理中间件 `ExceptionHandlingMiddleware`
+5. **CORS**: 开发环境允许所有来源（生产环境需要限制）
+6. **JSON 序列化**: 使用 camelCase 命名策略
+7. **工作流引擎**: 确保在应用启动时启动 WorkflowCore 主机
+
+## 代码审查检查清单
+
+- [ ] 所有公共成员有 XML 注释
+- [ ] 异步方法正确使用 `async/await`
+- [ ] 实体继承 `Entity<TKey>` 并实现必要的接口
+- [ ] 服务接口定义在 Application 层
+- [ ] 服务实现在 Infrastructure 层
+- [ ] 控制器继承 `BaseController`
+- [ ] API 响应使用 `ApiResponse<T>` 格式
+- [ ] 数据库查询考虑租户隔离
+- [ ] 软删除实体使用查询过滤器
+- [ ] 前端组件使用 TypeScript 类型
+- [ ] 遵循命名约定
+
