@@ -7,10 +7,9 @@ import {
   useNodesState,
   useEdgesState,
   addEdge,
-  Connection,
-  Edge,
-  Node,
   BackgroundVariant,
+  type Edge,
+  type Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Button, Space, message } from 'antd';
