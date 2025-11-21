@@ -13,6 +13,8 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
+    <PackageReference Include="WorkflowCore.Persistence.EntityFramework" Version="3.17.0" />
+    <PackageReference Include="WorkflowCore.Persistence.Sqlite" Version="3.17.0" />
   </ItemGroup>
 
   <ItemGroup>

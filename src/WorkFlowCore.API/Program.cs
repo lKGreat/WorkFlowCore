@@ -33,6 +33,9 @@ builder.Services.AddScoped<WorkFlowCore.Application.Services.IDepartmentService,
 // 配置 AutoMapper
 builder.Services.AddAutoMapper(typeof(WorkFlowCore.Application.Mappings.MappingProfile));
 
+// 配置 WorkflowCore
+builder.Services.AddWorkflow(x => x.UseSqlite(connectionString!, true));
+
 // 配置 CORS（可选）
 builder.Services.AddCors(options =>
 {
@@ -69,5 +72,9 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Dat
     .WithTags("Health");
 
 app.MapControllers();
+
+// 启动 WorkflowCore 引擎
+var host = app.Services.GetRequiredService<global::WorkflowCore.Interface.IWorkflowHost>();
+host.Start();
 
 app.Run();
