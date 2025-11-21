@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WorkFlowCore.API.Controllers;
@@ -16,9 +18,21 @@ public abstract class BaseController : ControllerBase
     {
         get
         {
-            // TODO: 从请求头或 JWT Token 中获取租户ID
-            // 目前返回固定值用于测试
-            return Guid.Parse("00000000-0000-0000-0000-000000000001");
+            if (HttpContext == null)
+            {
+                return null;
+            }
+
+            if (HttpContext.Request.Headers.TryGetValue("X-Tenant-Id", out var tenantIdValues) &&
+                Guid.TryParse(tenantIdValues.FirstOrDefault(), out var tenantIdFromHeader))
+            {
+                return tenantIdFromHeader;
+            }
+
+            var tenantClaim = HttpContext.User?.FindFirst("tenant_id")?.Value ??
+                              HttpContext.User?.FindFirst("tenantId")?.Value;
+
+            return Guid.TryParse(tenantClaim, out var tenantIdFromClaim) ? tenantIdFromClaim : null;
         }
     }
 
@@ -29,8 +43,17 @@ public abstract class BaseController : ControllerBase
     {
         get
         {
-            // TODO: 从 JWT Token 中获取用户ID
-            return null;
+            var user = HttpContext?.User;
+
+            if (user?.Identity?.IsAuthenticated != true)
+            {
+                return null;
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                              user.FindFirst("sub")?.Value;
+
+            return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
         }
     }
 }
