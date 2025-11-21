@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using WorkFlowCore.Application.Common;
+using WorkFlowCore.Domain.Common;
 using WorkFlowCore.Infrastructure.Data;
 
 namespace WorkFlowCore.Infrastructure.Repositories;

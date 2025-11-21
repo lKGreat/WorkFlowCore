@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using WorkFlowCore.Application.Common;
+using WorkFlowCore.Domain.Common;
 
 namespace WorkFlowCore.Infrastructure.Repositories;
 

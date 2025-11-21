@@ -1,4 +1,4 @@
-namespace WorkFlowCore.Application.Common;
+namespace WorkFlowCore.Domain.Common;
 
 /// <summary>
 /// 分页响应结构

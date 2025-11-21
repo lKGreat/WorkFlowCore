@@ -1,4 +1,4 @@
-namespace WorkFlowCore.Application.Common;
+namespace WorkFlowCore.Domain.Common;
 
 /// <summary>
 /// 分页请求基类

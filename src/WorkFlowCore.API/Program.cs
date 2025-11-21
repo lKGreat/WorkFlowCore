@@ -25,6 +25,11 @@ builder.Services.AddDbContext<WorkFlowDbContext>(options =>
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IPagedRepository<>), typeof(PagedRepository<>));
 
+// 注册服务
+builder.Services.AddScoped<WorkFlowCore.Application.Services.ITenantService, WorkFlowCore.Infrastructure.Services.TenantService>();
+builder.Services.AddScoped<WorkFlowCore.Application.Services.IUserService, WorkFlowCore.Infrastructure.Services.UserService>();
+builder.Services.AddScoped<WorkFlowCore.Application.Services.IDepartmentService, WorkFlowCore.Infrastructure.Services.DepartmentService>();
+
 // 配置 AutoMapper
 builder.Services.AddAutoMapper(typeof(WorkFlowCore.Application.Mappings.MappingProfile));
 
