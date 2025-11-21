@@ -1,11 +1,18 @@
 using Microsoft.EntityFrameworkCore;
+using WorkFlowCore.API.Middleware;
 using WorkFlowCore.Infrastructure.Data;
 using WorkFlowCore.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 添加服务到容器
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // 配置 JSON 序列化选项
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -16,20 +23,39 @@ builder.Services.AddDbContext<WorkFlowDbContext>(options =>
 
 // 注册仓储
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped(typeof(IPagedRepository<>), typeof(PagedRepository<>));
 
 // 配置 AutoMapper
 builder.Services.AddAutoMapper(typeof(WorkFlowCore.Application.Mappings.MappingProfile));
 
+// 配置 CORS（可选）
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
+
+// 全局异常处理中间件（必须在最前面）
+app.UseExceptionHandling();
 
 // 配置 HTTP 请求管道
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "WorkFlow Core API v1");
+    });
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 app.UseAuthorization();
 
 // 健康检查端点
