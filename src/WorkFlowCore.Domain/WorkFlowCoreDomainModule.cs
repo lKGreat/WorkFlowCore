@@ -4,7 +4,7 @@ using Volo.Abp.Modularity;
 namespace WorkFlowCore.Domain;
 
 [DependsOn(
-    typeof(AbpDomainModule)
+    typeof(AbpDddDomainModule)
 )]
 public class WorkFlowCoreDomainModule : AbpModule
 {
