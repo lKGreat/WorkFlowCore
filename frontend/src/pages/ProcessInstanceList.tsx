@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, message, Tag, Modal, Form, Select, Input } from 'antd';
+import { Table, Button, Space, message, Tag, Modal, Form, Input } from 'antd';
 import { PlusOutlined, PauseCircleOutlined, PlayCircleOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { workflowService } from '../services/workflowService';
 import type { WorkflowInstance } from '../types/processDefinition.types';
 
-const { Option } = Select;
-
 export const ProcessInstanceList: React.FC = () => {
-  const [data, setData] = useState<WorkflowInstance[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [data] = useState<WorkflowInstance[]>([]);
+  const [loading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [form] = Form.useForm();

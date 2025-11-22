@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Space, Modal, message, Tag, Input } from 'antd';
+import { Table, Button, Space, Modal, message, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, HistoryOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import { processDefinitionService } from '../services/processDefinitionService';
 import type { ProcessDefinitionListItem } from '../types/processDefinition.types';
-
-const { Search } = Input;
 
 export const ProcessDefinitionList: React.FC = () => {
   const [data, setData] = useState<ProcessDefinitionListItem[]>([]);

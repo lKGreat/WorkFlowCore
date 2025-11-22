@@ -1,6 +1,6 @@
 import React from 'react';
 import { Layout as AntLayout, Menu } from 'antd';
-import { FileTextOutlined, ApartmentOutlined } from '@ant-design/icons';
+import { FileTextOutlined, ApartmentOutlined, CloudUploadOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 
 const { Header, Sider, Content } = AntLayout;
@@ -20,6 +20,11 @@ export const Layout: React.FC = () => {
       icon: <ApartmentOutlined />,
       label: '流程实例',
     },
+    {
+      key: '/file-upload',
+      icon: <CloudUploadOutlined />,
+      label: '文件上传',
+    },
   ];
 
   const handleMenuClick = (key: string) => {
@@ -30,6 +35,9 @@ export const Layout: React.FC = () => {
   const getSelectedKey = () => {
     if (location.pathname.startsWith('/instances')) {
       return '/instances';
+    }
+    if (location.pathname.startsWith('/file-upload')) {
+      return '/file-upload';
     }
     if (location.pathname.startsWith('/designer') || location.pathname.startsWith('/versions')) {
       return '/';
