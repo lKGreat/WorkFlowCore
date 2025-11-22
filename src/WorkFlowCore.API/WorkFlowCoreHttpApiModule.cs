@@ -97,6 +97,16 @@ public class WorkFlowCoreHttpApiModule : AbpModule
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!)),
                 ClockSkew = TimeSpan.Zero
             };
+        })
+        .AddWeixin(options =>
+        {
+            options.ClientId = configuration["Authentication:WeChat:AppId"]!;
+            options.ClientSecret = configuration["Authentication:WeChat:AppSecret"]!;
+        })
+        .AddQQ(options =>
+        {
+            options.ClientId = configuration["Authentication:QQ:AppId"]!;
+            options.ClientSecret = configuration["Authentication:QQ:AppKey"]!;
         });
 
         // 注册JWT服务
