@@ -1,11 +1,12 @@
+using Volo.Abp.Application.Dtos;
+
 namespace WorkFlowCore.Application.DTOs;
 
 /// <summary>
 /// 用户DTO
 /// </summary>
-public class UserDto
+public class UserDto : FullAuditedEntityDto<Guid>
 {
-    public Guid Id { get; set; }
     public string UserName { get; set; } = string.Empty;
     public string RealName { get; set; } = string.Empty;
     public string? Email { get; set; }

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Cors;
-using Microsoft.OpenApi;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 using Volo.Abp;
+using Volo.Abp.AspNetCore.ExceptionHandling;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
@@ -27,6 +29,7 @@ public class WorkFlowCoreHttpApiModule : AbpModule
         ConfigureCors(context, configuration);
         ConfigureJwt(context.Services, configuration);
         ConfigureWorkflowCore(context.Services, configuration);
+        ConfigureExceptionHandling(context.Services);
     }
 
     private void ConfigureSwaggerServices(IServiceCollection services)
@@ -70,6 +73,22 @@ public class WorkFlowCoreHttpApiModule : AbpModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         services.AddWorkflow(x => x.UseSqlite(connectionString!, true));
+    }
+
+    private void ConfigureExceptionHandling(IServiceCollection services)
+    {
+        // 配置ABP异常处理
+        Configure<AbpExceptionHandlingOptions>(options =>
+        {
+            options.SendExceptionsDetailsToClients = true; // 开发环境发送详细异常信息
+            options.SendStackTraceToClients = true; // 开发环境发送堆栈跟踪
+        });
+
+        // 配置MVC异常过滤器
+        Configure<MvcOptions>(options =>
+        {
+            options.AddAbp(services.BuildServiceProvider());
+        });
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)

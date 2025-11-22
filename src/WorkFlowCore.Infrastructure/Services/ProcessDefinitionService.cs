@@ -1,25 +1,22 @@
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+using Volo.Abp.Application.Services;
+using Volo.Abp.Domain.Repositories;
 using WorkFlowCore.Application.DTOs;
 using WorkFlowCore.Application.Services;
 using WorkFlowCore.Domain.Common;
 using WorkFlowCore.Domain.Entities;
-using WorkFlowCore.Infrastructure.Data;
 
 namespace WorkFlowCore.Infrastructure.Services;
 
 /// <summary>
 /// 流程定义服务实现
 /// </summary>
-public class ProcessDefinitionService : IProcessDefinitionService
+public class ProcessDefinitionService : ApplicationService, IProcessDefinitionService
 {
-    private readonly WorkFlowDbContext _context;
-    private readonly IMapper _mapper;
+    private readonly IRepository<ProcessDefinition, Guid> _repository;
 
-    public ProcessDefinitionService(WorkFlowDbContext context, IMapper mapper)
+    public ProcessDefinitionService(IRepository<ProcessDefinition, Guid> repository)
     {
-        _context = context;
-        _mapper = mapper;
+        _repository = repository;
     }
 
     /// <summary>
@@ -28,10 +25,12 @@ public class ProcessDefinitionService : IProcessDefinitionService
     public async Task<ProcessDefinitionDto> CreateAsync(CreateProcessDefinitionRequest request, Guid tenantId)
     {
         // 检查同名流程Key是否已存在
-        var existingProcess = await _context.ProcessDefinitions
+        var queryable = await _repository.GetQueryableAsync();
+        var existingProcesses = queryable
             .Where(p => p.TenantId == tenantId && p.Key == request.Key)
-            .OrderByDescending(p => p.Version)
-            .FirstOrDefaultAsync();
+            .OrderByDescending(p => p.Version);
+        
+        var existingProcess = await AsyncExecuter.FirstOrDefaultAsync(existingProcesses);
 
         int version = 1;
         if (existingProcess != null)
@@ -41,7 +40,7 @@ public class ProcessDefinitionService : IProcessDefinitionService
         }
 
         var processDefinition = new ProcessDefinition(
-            Guid.NewGuid(),
+            GuidGenerator.Create(),
             tenantId,
             request.Name,
             request.Key,
@@ -54,10 +53,9 @@ public class ProcessDefinitionService : IProcessDefinitionService
             IsEnabled = request.IsEnabled
         };
 
-        _context.ProcessDefinitions.Add(processDefinition);
-        await _context.SaveChangesAsync();
+        await _repository.InsertAsync(processDefinition);
 
-        return _mapper.Map<ProcessDefinitionDto>(processDefinition);
+        return ObjectMapper.Map<ProcessDefinition, ProcessDefinitionDto>(processDefinition);
     }
 
     /// <summary>
@@ -65,19 +63,21 @@ public class ProcessDefinitionService : IProcessDefinitionService
     /// </summary>
     public async Task<ProcessDefinitionDto> UpdateAsync(Guid id, UpdateProcessDefinitionRequest request, Guid tenantId, bool createNewVersion = false)
     {
-        var processDefinition = await _context.ProcessDefinitions
-            .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId);
+        var queryable = await _repository.GetQueryableAsync();
+        var processDefinition = await AsyncExecuter.FirstOrDefaultAsync(
+            queryable.Where(p => p.Id == id && p.TenantId == tenantId)
+        );
 
         if (processDefinition == null)
         {
-            throw new Exception("流程定义不存在");
+            throw new Volo.Abp.UserFriendlyException("流程定义不存在");
         }
 
         if (createNewVersion)
         {
             // 创建新版本
             var newVersion = new ProcessDefinition(
-                Guid.NewGuid(),
+                GuidGenerator.Create(),
                 tenantId,
                 request.Name ?? processDefinition.Name,
                 processDefinition.Key,
@@ -90,10 +90,9 @@ public class ProcessDefinitionService : IProcessDefinitionService
                 IsEnabled = request.IsEnabled ?? processDefinition.IsEnabled
             };
 
-            _context.ProcessDefinitions.Add(newVersion);
-            await _context.SaveChangesAsync();
+            await _repository.InsertAsync(newVersion);
 
-            return _mapper.Map<ProcessDefinitionDto>(newVersion);
+            return ObjectMapper.Map<ProcessDefinition, ProcessDefinitionDto>(newVersion);
         }
         else
         {
@@ -104,9 +103,9 @@ public class ProcessDefinitionService : IProcessDefinitionService
             if (request.ContentFormat != null) processDefinition.ContentFormat = request.ContentFormat;
             if (request.IsEnabled != null) processDefinition.IsEnabled = request.IsEnabled.Value;
 
-            await _context.SaveChangesAsync();
+            await _repository.UpdateAsync(processDefinition);
 
-            return _mapper.Map<ProcessDefinitionDto>(processDefinition);
+            return ObjectMapper.Map<ProcessDefinition, ProcessDefinitionDto>(processDefinition);
         }
     }
 
@@ -115,17 +114,18 @@ public class ProcessDefinitionService : IProcessDefinitionService
     /// </summary>
     public async Task DeleteAsync(Guid id, Guid tenantId)
     {
-        var processDefinition = await _context.ProcessDefinitions
-            .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId);
+        var queryable = await _repository.GetQueryableAsync();
+        var processDefinition = await AsyncExecuter.FirstOrDefaultAsync(
+            queryable.Where(p => p.Id == id && p.TenantId == tenantId)
+        );
 
         if (processDefinition == null)
         {
-            throw new Exception("流程定义不存在");
+            throw new Volo.Abp.UserFriendlyException("流程定义不存在");
         }
 
-        processDefinition.IsDeleted = true;
-        // ABP的FullAuditedAggregateRoot会自动处理软删除，无需手动设置DeletedAt
-        await _context.SaveChangesAsync();
+        // ABP的DeleteAsync会自动处理软删除
+        await _repository.DeleteAsync(processDefinition);
     }
 
     /// <summary>
@@ -133,10 +133,12 @@ public class ProcessDefinitionService : IProcessDefinitionService
     /// </summary>
     public async Task<ProcessDefinitionDto?> GetByIdAsync(Guid id, Guid tenantId)
     {
-        var processDefinition = await _context.ProcessDefinitions
-            .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId);
+        var queryable = await _repository.GetQueryableAsync();
+        var processDefinition = await AsyncExecuter.FirstOrDefaultAsync(
+            queryable.Where(p => p.Id == id && p.TenantId == tenantId)
+        );
 
-        return processDefinition == null ? null : _mapper.Map<ProcessDefinitionDto>(processDefinition);
+        return processDefinition == null ? null : ObjectMapper.Map<ProcessDefinition, ProcessDefinitionDto>(processDefinition);
     }
 
     /// <summary>
@@ -144,10 +146,12 @@ public class ProcessDefinitionService : IProcessDefinitionService
     /// </summary>
     public async Task<ProcessDefinitionDto?> GetByKeyAndVersionAsync(string key, int version, Guid tenantId)
     {
-        var processDefinition = await _context.ProcessDefinitions
-            .FirstOrDefaultAsync(p => p.Key == key && p.Version == version && p.TenantId == tenantId);
+        var queryable = await _repository.GetQueryableAsync();
+        var processDefinition = await AsyncExecuter.FirstOrDefaultAsync(
+            queryable.Where(p => p.Key == key && p.Version == version && p.TenantId == tenantId)
+        );
 
-        return processDefinition == null ? null : _mapper.Map<ProcessDefinitionDto>(processDefinition);
+        return processDefinition == null ? null : ObjectMapper.Map<ProcessDefinition, ProcessDefinitionDto>(processDefinition);
     }
 
     /// <summary>
@@ -155,12 +159,13 @@ public class ProcessDefinitionService : IProcessDefinitionService
     /// </summary>
     public async Task<ProcessDefinitionDto?> GetLatestVersionAsync(string key, Guid tenantId)
     {
-        var processDefinition = await _context.ProcessDefinitions
-            .Where(p => p.Key == key && p.TenantId == tenantId)
-            .OrderByDescending(p => p.Version)
-            .FirstOrDefaultAsync();
+        var queryable = await _repository.GetQueryableAsync();
+        var processDefinition = await AsyncExecuter.FirstOrDefaultAsync(
+            queryable.Where(p => p.Key == key && p.TenantId == tenantId)
+                     .OrderByDescending(p => p.Version)
+        );
 
-        return processDefinition == null ? null : _mapper.Map<ProcessDefinitionDto>(processDefinition);
+        return processDefinition == null ? null : ObjectMapper.Map<ProcessDefinition, ProcessDefinitionDto>(processDefinition);
     }
 
     /// <summary>
@@ -168,12 +173,13 @@ public class ProcessDefinitionService : IProcessDefinitionService
     /// </summary>
     public async Task<List<ProcessDefinitionVersionDto>> GetVersionHistoryAsync(string key, Guid tenantId)
     {
-        var versions = await _context.ProcessDefinitions
-            .Where(p => p.Key == key && p.TenantId == tenantId)
-            .OrderByDescending(p => p.Version)
-            .ToListAsync();
+        var queryable = await _repository.GetQueryableAsync();
+        var versions = await AsyncExecuter.ToListAsync(
+            queryable.Where(p => p.Key == key && p.TenantId == tenantId)
+                     .OrderByDescending(p => p.Version)
+        );
 
-        return _mapper.Map<List<ProcessDefinitionVersionDto>>(versions);
+        return ObjectMapper.Map<List<ProcessDefinition>, List<ProcessDefinitionVersionDto>>(versions);
     }
 
     /// <summary>
@@ -181,14 +187,14 @@ public class ProcessDefinitionService : IProcessDefinitionService
     /// </summary>
     public async Task<PagedResponse<ProcessDefinitionListDto>> GetPagedAsync(PagedRequest request, Guid tenantId)
     {
-        var query = _context.ProcessDefinitions
-            .Where(p => p.TenantId == tenantId);
+        var queryable = await _repository.GetQueryableAsync();
+        var query = queryable.Where(p => p.TenantId == tenantId);
 
         // 只显示每个Key的最新版本
-        var latestVersions = await query
-            .GroupBy(p => p.Key)
-            .Select(g => g.OrderByDescending(p => p.Version).FirstOrDefault())
-            .ToListAsync();
+        var latestVersions = await AsyncExecuter.ToListAsync(
+            query.GroupBy(p => p.Key)
+                 .Select(g => g.OrderByDescending(p => p.Version).FirstOrDefault())
+        );
 
         var total = latestVersions.Count;
         var items = latestVersions
@@ -197,7 +203,7 @@ public class ProcessDefinitionService : IProcessDefinitionService
             .Where(p => p != null)
             .ToList();
 
-        var dtos = _mapper.Map<List<ProcessDefinitionListDto>>(items);
+        var dtos = ObjectMapper.Map<List<ProcessDefinition>, List<ProcessDefinitionListDto>>(items!);
 
         return new PagedResponse<ProcessDefinitionListDto>
         {

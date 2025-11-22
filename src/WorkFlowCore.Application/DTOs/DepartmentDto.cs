@@ -1,11 +1,12 @@
+using Volo.Abp.Application.Dtos;
+
 namespace WorkFlowCore.Application.DTOs;
 
 /// <summary>
 /// 部门DTO
 /// </summary>
-public class DepartmentDto
+public class DepartmentDto : FullAuditedEntityDto<Guid>
 {
-    public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Code { get; set; }
     public Guid? ParentId { get; set; }

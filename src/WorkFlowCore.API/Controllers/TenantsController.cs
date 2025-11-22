@@ -34,7 +34,7 @@ public class TenantsController : BaseController
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<TenantDto>>> GetById(Guid id)
     {
-        var dto = await _tenantService.GetByIdAsync(id);
+        var dto = await _tenantService.GetAsync(id);
         
         if (dto == null)
         {
@@ -65,7 +65,7 @@ public class TenantsController : BaseController
             return ApiResponse.Fail("租户不存在", ErrorCodes.NotFound).ToActionResult();
         }
 
-        await _tenantService.UpdateAsync(dto);
+        await _tenantService.UpdateAsync(id, dto);
         return ApiResponse.Ok("更新成功").ToActionResult();
     }
 

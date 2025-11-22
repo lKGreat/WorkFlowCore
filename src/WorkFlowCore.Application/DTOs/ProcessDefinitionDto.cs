@@ -1,15 +1,12 @@
+using Volo.Abp.Application.Dtos;
+
 namespace WorkFlowCore.Application.DTOs;
 
 /// <summary>
 /// 流程定义 DTO
 /// </summary>
-public class ProcessDefinitionDto
+public class ProcessDefinitionDto : FullAuditedEntityDto<Guid>
 {
-    /// <summary>
-    /// 流程ID
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// 流程名称
     /// </summary>
@@ -48,17 +45,7 @@ public class ProcessDefinitionDto
     /// <summary>
     /// 租户ID
     /// </summary>
-    public Guid TenantId { get; set; }
-
-    /// <summary>
-    /// 创建时间
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// 更新时间
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
+    public Guid? TenantId { get; set; }
 }
 
 /// <summary>
@@ -131,13 +118,8 @@ public class UpdateProcessDefinitionRequest
 /// <summary>
 /// 流程定义列表 DTO
 /// </summary>
-public class ProcessDefinitionListDto
+public class ProcessDefinitionListDto : EntityDto<Guid>
 {
-    /// <summary>
-    /// 流程ID
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// 流程名称
     /// </summary>
@@ -171,24 +153,19 @@ public class ProcessDefinitionListDto
     /// <summary>
     /// 创建时间
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreationTime { get; set; }
 
     /// <summary>
     /// 更新时间
     /// </summary>
-    public DateTime UpdatedAt { get; set; }
+    public DateTime? LastModificationTime { get; set; }
 }
 
 /// <summary>
 /// 流程定义版本 DTO
 /// </summary>
-public class ProcessDefinitionVersionDto
+public class ProcessDefinitionVersionDto : EntityDto<Guid>
 {
-    /// <summary>
-    /// 流程ID
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// 流程名称
     /// </summary>
@@ -217,11 +194,11 @@ public class ProcessDefinitionVersionDto
     /// <summary>
     /// 创建时间
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreationTime { get; set; }
 
     /// <summary>
     /// 更新时间
     /// </summary>
-    public DateTime UpdatedAt { get; set; }
+    public DateTime? LastModificationTime { get; set; }
 }
 

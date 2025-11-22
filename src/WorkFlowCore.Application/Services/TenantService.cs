@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using WorkFlowCore.Application.DTOs;
@@ -11,30 +12,21 @@ using WorkFlowCore.Domain.Entities;
 
 namespace WorkFlowCore.Application.Services;
 
-public class TenantService : ApplicationService, ITenantService
+public class TenantService : CrudAppService<Tenant, TenantDto, Guid, PagedAndSortedResultRequestDto, TenantDto, TenantDto>, ITenantService
 {
-    private readonly IRepository<Tenant, Guid> _repository;
-
-    public TenantService(IRepository<Tenant, Guid> repository)
+    public TenantService(IRepository<Tenant, Guid> repository) : base(repository)
     {
-        _repository = repository;
-    }
-
-    public async Task<TenantDto?> GetByIdAsync(Guid id)
-    {
-        var tenant = await _repository.FindAsync(id);
-        return tenant == null ? null : ObjectMapper.Map<Tenant, TenantDto>(tenant);
     }
 
     public async Task<List<TenantDto>> GetAllAsync()
     {
-        var tenants = await _repository.GetListAsync();
+        var tenants = await Repository.GetListAsync();
         return ObjectMapper.Map<List<Tenant>, List<TenantDto>>(tenants);
     }
 
     public async Task<PagedResponse<TenantDto>> GetPagedAsync(PagedRequest request)
     {
-        var queryable = await _repository.GetQueryableAsync();
+        var queryable = await Repository.GetQueryableAsync();
         
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
@@ -53,47 +45,44 @@ public class TenantService : ApplicationService, ITenantService
         return PagedResponse<TenantDto>.Create(dtos, totalCount, request.PageIndex, request.PageSize);
     }
 
-    public async Task<TenantDto> CreateAsync(TenantDto dto)
+    public override async Task<TenantDto> CreateAsync(TenantDto input)
     {
-        if (await _repository.AnyAsync(t => t.Code == dto.Code))
+        if (await Repository.AnyAsync(t => t.Code == input.Code))
         {
-            throw new UserFriendlyException($"租户编码 '{dto.Code}' 已存在");
+            throw new UserFriendlyException($"租户编码 '{input.Code}' 已存在");
         }
 
-        var tenant = new Tenant(GuidGenerator.Create(), dto.Name, dto.Code)
+        var tenant = new Tenant(GuidGenerator.Create(), input.Name, input.Code)
         {
-            ContactPerson = dto.ContactPerson,
-            ContactPhone = dto.ContactPhone,
-            ContactEmail = dto.ContactEmail,
-            IsEnabled = dto.IsEnabled
+            ContactPerson = input.ContactPerson,
+            ContactPhone = input.ContactPhone,
+            ContactEmail = input.ContactEmail,
+            IsEnabled = input.IsEnabled
         };
 
-        await _repository.InsertAsync(tenant);
+        await Repository.InsertAsync(tenant);
 
         return ObjectMapper.Map<Tenant, TenantDto>(tenant);
     }
 
-    public async Task UpdateAsync(TenantDto dto)
+    public override async Task<TenantDto> UpdateAsync(Guid id, TenantDto input)
     {
-        var tenant = await _repository.GetAsync(dto.Id);
+        var tenant = await Repository.GetAsync(id);
         
-        if (await _repository.AnyAsync(t => t.Code == dto.Code && t.Id != dto.Id))
+        if (await Repository.AnyAsync(t => t.Code == input.Code && t.Id != id))
         {
-            throw new UserFriendlyException($"租户编码 '{dto.Code}' 已存在");
+            throw new UserFriendlyException($"租户编码 '{input.Code}' 已存在");
         }
 
-        tenant.Name = dto.Name;
-        tenant.Code = dto.Code;
-        tenant.ContactPerson = dto.ContactPerson;
-        tenant.ContactPhone = dto.ContactPhone;
-        tenant.ContactEmail = dto.ContactEmail;
-        tenant.IsEnabled = dto.IsEnabled;
+        tenant.Name = input.Name;
+        tenant.Code = input.Code;
+        tenant.ContactPerson = input.ContactPerson;
+        tenant.ContactPhone = input.ContactPhone;
+        tenant.ContactEmail = input.ContactEmail;
+        tenant.IsEnabled = input.IsEnabled;
 
-        await _repository.UpdateAsync(tenant);
-    }
-
-    public async Task DeleteAsync(Guid id)
-    {
-        await _repository.DeleteAsync(id);
+        await Repository.UpdateAsync(tenant);
+        
+        return ObjectMapper.Map<Tenant, TenantDto>(tenant);
     }
 }
