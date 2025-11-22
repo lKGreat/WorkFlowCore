@@ -21,6 +21,8 @@ public class WorkFlowDbContext : DbContext
     public DbSet<ProcessDefinition> ProcessDefinitions => Set<ProcessDefinition>();
     public DbSet<ProcessInstance> ProcessInstances => Set<ProcessInstance>();
     public DbSet<TaskInstance> TaskInstances => Set<TaskInstance>();
+    public DbSet<FileResource> FileResources => Set<FileResource>();
+    public DbSet<FileUploadSession> FileUploadSessions => Set<FileUploadSession>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,11 +36,16 @@ public class WorkFlowDbContext : DbContext
         modelBuilder.Entity<ProcessDefinition>().ToTable("ProcessDefinitions");
         modelBuilder.Entity<ProcessInstance>().ToTable("ProcessInstances");
         modelBuilder.Entity<TaskInstance>().ToTable("TaskInstances");
+        modelBuilder.Entity<FileResource>().ToTable("FileResources");
+        modelBuilder.Entity<FileUploadSession>().ToTable("FileUploadSessions");
 
         // 配置索引
         modelBuilder.Entity<Tenant>().HasIndex(t => t.Code).IsUnique();
         modelBuilder.Entity<User>().HasIndex(u => u.UserName);
         modelBuilder.Entity<ProcessDefinition>().HasIndex(p => new { p.Key, p.Version });
+        modelBuilder.Entity<FileResource>().HasIndex(f => new { f.TenantId, f.StorageProvider });
+        modelBuilder.Entity<FileResource>().HasIndex(f => f.StorageKey);
+        modelBuilder.Entity<FileUploadSession>().HasIndex(s => new { s.TenantId, s.StorageProvider, s.IsCompleted });
 
         // 全局查询过滤器：软删除
         modelBuilder.Entity<Tenant>().HasQueryFilter(e => !e.IsDeleted);
@@ -46,6 +53,8 @@ public class WorkFlowDbContext : DbContext
         modelBuilder.Entity<Department>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Role>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<ProcessDefinition>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<FileResource>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<FileUploadSession>().HasQueryFilter(e => !e.IsDeleted);
     }
 
     public override int SaveChanges()
