@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Volo.Abp.Application.Dtos;
 
 namespace WorkFlowCore.Application.DTOs;
@@ -56,26 +57,35 @@ public class CreateProcessDefinitionRequest
     /// <summary>
     /// 流程名称
     /// </summary>
+    [Required(ErrorMessage = "流程名称不能为空")]
+    [StringLength(100, ErrorMessage = "流程名称长度不能超过100个字符")]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 流程编码（唯一标识）
     /// </summary>
+    [Required(ErrorMessage = "流程编码不能为空")]
+    [StringLength(50, ErrorMessage = "流程编码长度不能超过50个字符")]
+    [RegularExpression(@"^[a-z][a-z0-9-]*$", ErrorMessage = "流程编码必须以小写字母开头，只能包含小写字母、数字和连字符")]
     public string Key { get; set; } = string.Empty;
 
     /// <summary>
     /// 描述
     /// </summary>
+    [StringLength(500, ErrorMessage = "描述长度不能超过500个字符")]
     public string? Description { get; set; }
 
     /// <summary>
     /// 流程定义内容（BPMN XML 或 JSON）
     /// </summary>
+    [Required(ErrorMessage = "流程定义内容不能为空")]
     public string Content { get; set; } = string.Empty;
 
     /// <summary>
     /// 内容格式（BPMN、JSON）
     /// </summary>
+    [Required(ErrorMessage = "内容格式不能为空")]
+    [RegularExpression(@"^(BPMN|JSON)$", ErrorMessage = "内容格式只能是BPMN或JSON")]
     public string ContentFormat { get; set; } = "JSON";
 
     /// <summary>
