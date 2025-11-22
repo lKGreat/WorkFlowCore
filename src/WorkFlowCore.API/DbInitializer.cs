@@ -25,17 +25,11 @@ public static class DbInitializer
 
         if (existingTenant == null)
         {
-            // 插入测试租户
-            var testTenant = new Tenant
+            // 插入测试租户（使用构造函数，ABP自动处理审计字段）
+            var testTenant = new Tenant(testTenantId, "测试租户", "test-tenant")
             {
-                Id = testTenantId,
-                Name = "测试租户",
-                Code = "test-tenant",
                 ContactEmail = "test@example.com",
-                IsEnabled = true,
-                IsDeleted = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                IsEnabled = true
             };
 
             context.Tenants.Add(testTenant);

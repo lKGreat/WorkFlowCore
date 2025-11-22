@@ -6,7 +6,6 @@ using WorkFlowCore.API;
 using WorkFlowCore.API.Middleware;
 using WorkFlowCore.Application.Common;
 using WorkFlowCore.Infrastructure.Data;
-using WorkFlowCore.Infrastructure.Repositories;
 using WorkFlowCore.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseAutofac();
 
-// Ä£ÐÍÑéÖ¤Í³Ò»ÏìÓ¦
+// Ä£ï¿½ï¿½ï¿½ï¿½Ö¤Í³Ò»ï¿½ï¿½Ó¦
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -25,7 +24,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
                 kvp => kvp.Key,
                 kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
 
-        var response = ApiResponse.Fail("ÇëÇó²ÎÊýÑéÖ¤Ê§°Ü", ErrorCodes.ValidationError, errors);
+        var response = ApiResponse.Fail("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¤Ê§ï¿½ï¿½", ErrorCodes.ValidationError, errors);
         response.TraceId = context.HttpContext.TraceIdentifier;
 
         return new BadRequestObjectResult(response);
@@ -35,7 +34,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ÅäÖÃ JWT ÈÏÖ¤
+// ï¿½ï¿½ï¿½ï¿½ JWT ï¿½ï¿½Ö¤
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddAuthentication(options =>
 {
@@ -57,22 +56,13 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// ÅäÖÃÊý¾Ý¿âÉÏÏÂÎÄ
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<WorkFlowDbContext>(options =>
     options.UseSqlite(connectionString));
-
-// ×¢²á²Ö´¢
-builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped(typeof(IPagedRepository<>), typeof(PagedRepository<>));
-
-// ×¢²á·þÎñ
-builder.Services.AddScoped<WorkFlowCore.Application.Services.ITenantService, WorkFlowCore.Infrastructure.Services.TenantService>();
-builder.Services.AddScoped<WorkFlowCore.Application.Services.IUserService, WorkFlowCore.Infrastructure.Services.UserService>();
-builder.Services.AddScoped<WorkFlowCore.Application.Services.IDepartmentService, WorkFlowCore.Infrastructure.Services.DepartmentService>();
 builder.Services.AddScoped<WorkFlowCore.Application.Services.IProcessDefinitionService, WorkFlowCore.Infrastructure.Services.ProcessDefinitionService>();
 
-// ×¢²á JWT ·þÎñ
+// ×¢ï¿½ï¿½ JWT ï¿½ï¿½ï¿½ï¿½
 builder.Services.AddSingleton(sp => new JwtService(
     jwtSettings["SecretKey"]!,
     jwtSettings["Issuer"]!,
@@ -80,20 +70,20 @@ builder.Services.AddSingleton(sp => new JwtService(
     int.Parse(jwtSettings["ExpirationMinutes"]!)
 ));
 
-// ÅäÖÃ AutoMapper
+// ï¿½ï¿½ï¿½ï¿½ AutoMapper
 builder.Services.AddAutoMapper(typeof(WorkFlowCore.Application.Mappings.MappingProfile));
 
-// È·±£Êý¾Ý¿âÒÑ´´½¨ºÍÇ¨ÒÆ
+// È·ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½Ñ´ï¿½ï¿½ï¿½ï¿½ï¿½Ç¨ï¿½ï¿½
 using (var scope = builder.Services.BuildServiceProvider().CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<WorkFlowDbContext>();
-    context.Database.Migrate(); // Ó¦ÓÃÇ¨ÒÆ
+    context.Database.Migrate(); // Ó¦ï¿½ï¿½Ç¨ï¿½ï¿½
 }
 
-// ÅäÖÃ WorkflowCore
+// ï¿½ï¿½ï¿½ï¿½ WorkflowCore
 builder.Services.AddWorkflow(x => x.UseSqlite(connectionString!, true));
 
-// ÅäÖÃ CORS£¨¿ÉÑ¡£©
+// ï¿½ï¿½ï¿½ï¿½ CORSï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -106,17 +96,17 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ³õÊ¼»¯Êý¾Ý¿âºÍ²âÊÔÊý¾Ý
+// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½Í²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<WorkFlowDbContext>();
     await DbInitializer.InitializeAsync(context);
 }
 
-// È«¾ÖÒì³£´¦ÀíÖÐ¼ä¼þ£¨±ØÐëÔÚ×îÇ°Ãæ£©
+// È«ï¿½ï¿½ï¿½ì³£ï¿½ï¿½ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½æ£©
 app.UseExceptionHandling();
 
-// ÅäÖÃ HTTP ÇëÇó¹ÜµÀ
+// ï¿½ï¿½ï¿½ï¿½ HTTP ï¿½ï¿½ï¿½ï¿½Üµï¿½
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -128,18 +118,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
-// MVP½×¶Î£ºÁÙÊ±½ûÓÃÈÏÖ¤ºÍÊÚÈ¨
+// MVPï¿½×¶Î£ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½ï¿½È¨
 // app.UseAuthentication();
 // app.UseAuthorization();
 
-// ½¡¿µ¼ì²é¶Ëµã
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ëµï¿½
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
     .WithName("HealthCheck")
     .WithTags("Health");
 
 app.MapControllers();
 
-// Æô¶¯ WorkflowCore ÒýÇæ
+// ï¿½ï¿½ï¿½ï¿½ WorkflowCore ï¿½ï¿½ï¿½ï¿½
 var host = app.Services.GetRequiredService<global::WorkflowCore.Interface.IWorkflowHost>();
 host.Start();
 

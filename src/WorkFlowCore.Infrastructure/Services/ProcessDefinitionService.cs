@@ -40,17 +40,18 @@ public class ProcessDefinitionService : IProcessDefinitionService
             version = existingProcess.Version + 1;
         }
 
-        var processDefinition = new ProcessDefinition
+        var processDefinition = new ProcessDefinition(
+            Guid.NewGuid(),
+            tenantId,
+            request.Name,
+            request.Key,
+            request.Content
+        )
         {
-            Id = Guid.NewGuid(),
-            Name = request.Name,
-            Key = request.Key,
             Version = version,
             Description = request.Description,
-            Content = request.Content,
             ContentFormat = request.ContentFormat,
-            IsEnabled = request.IsEnabled,
-            TenantId = tenantId
+            IsEnabled = request.IsEnabled
         };
 
         _context.ProcessDefinitions.Add(processDefinition);
@@ -75,17 +76,18 @@ public class ProcessDefinitionService : IProcessDefinitionService
         if (createNewVersion)
         {
             // 创建新版本
-            var newVersion = new ProcessDefinition
+            var newVersion = new ProcessDefinition(
+                Guid.NewGuid(),
+                tenantId,
+                request.Name ?? processDefinition.Name,
+                processDefinition.Key,
+                request.Content ?? processDefinition.Content
+            )
             {
-                Id = Guid.NewGuid(),
-                Name = request.Name ?? processDefinition.Name,
-                Key = processDefinition.Key,
                 Version = processDefinition.Version + 1,
                 Description = request.Description ?? processDefinition.Description,
-                Content = request.Content ?? processDefinition.Content,
                 ContentFormat = request.ContentFormat ?? processDefinition.ContentFormat,
-                IsEnabled = request.IsEnabled ?? processDefinition.IsEnabled,
-                TenantId = tenantId
+                IsEnabled = request.IsEnabled ?? processDefinition.IsEnabled
             };
 
             _context.ProcessDefinitions.Add(newVersion);
@@ -122,7 +124,7 @@ public class ProcessDefinitionService : IProcessDefinitionService
         }
 
         processDefinition.IsDeleted = true;
-        processDefinition.DeletedAt = DateTime.UtcNow;
+        // ABP的FullAuditedAggregateRoot会自动处理软删除，无需手动设置DeletedAt
         await _context.SaveChangesAsync();
     }
 
