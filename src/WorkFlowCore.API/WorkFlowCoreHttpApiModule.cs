@@ -44,6 +44,7 @@ public class WorkFlowCoreHttpApiModule : AbpModule
         ConfigureSwaggerServices(context.Services);
         ConfigureCors(context, configuration);
         ConfigureAuthentication(context.Services, configuration);
+        ConfigureCaptcha(context.Services);
         ConfigureWorkflowCore(context.Services, configuration);
         ConfigureExceptionHandling(context.Services);
         ConfigureValidation(context.Services);
@@ -119,6 +120,18 @@ public class WorkFlowCoreHttpApiModule : AbpModule
                 int.Parse(jwtSettings["ExpirationMinutes"]!)
             ));
         }
+    }
+
+    private void ConfigureCaptcha(IServiceCollection services)
+    {
+        // 配置 Lazy.Captcha
+        services.AddCaptcha(configuration =>
+        {
+            configuration.CodeLength = 4;
+            configuration.ExpirySeconds = 120;
+            configuration.IgnoreCase = true;
+            configuration.StoreageKeyPrefix = "captcha:";
+        });
     }
 
     private void ConfigureWorkflowCore(IServiceCollection services, IConfiguration configuration)
