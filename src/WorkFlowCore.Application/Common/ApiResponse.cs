@@ -32,6 +32,16 @@ public class ApiResponse<T>
     public long Timestamp { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
     /// <summary>
+    /// Trace Id，用于前后端排查
+    /// </summary>
+    public string TraceId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 详细错误
+    /// </summary>
+    public IDictionary<string, string[]>? Errors { get; set; }
+
+    /// <summary>
     /// 创建成功响应
     /// </summary>
     public static ApiResponse<T> Ok(T data, string message = "操作成功")
@@ -47,13 +57,14 @@ public class ApiResponse<T>
     /// <summary>
     /// 创建失败响应
     /// </summary>
-    public static ApiResponse<T> Fail(string message, string? errorCode = null)
+    public static ApiResponse<T> Fail(string message, string? errorCode = null, IDictionary<string, string[]>? errors = null)
     {
         return new ApiResponse<T>
         {
             Success = false,
             Message = message,
-            ErrorCode = errorCode
+            ErrorCode = errorCode,
+            Errors = errors
         };
     }
 }
@@ -78,13 +89,14 @@ public class ApiResponse : ApiResponse<object>
     /// <summary>
     /// 创建失败响应（无数据）
     /// </summary>
-    public new static ApiResponse Fail(string message, string? errorCode = null)
+    public new static ApiResponse Fail(string message, string? errorCode = null, IDictionary<string, string[]>? errors = null)
     {
         return new ApiResponse
         {
             Success = false,
             Message = message,
-            ErrorCode = errorCode
+            ErrorCode = errorCode,
+            Errors = errors
         };
     }
 }
