@@ -6,10 +6,15 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
 using Volo.Abp;
+using Volo.Abp.Account;
+using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.ExceptionHandling;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Autofac;
+using Volo.Abp.Identity;
 using Volo.Abp.Modularity;
+using Volo.Abp.PermissionManagement.HttpApi;
+using Volo.Abp.SettingManagement;
 using WorkFlowCore.Application;
 using WorkFlowCore.Application.Common;
 using WorkFlowCore.Infrastructure;
@@ -22,7 +27,12 @@ namespace WorkFlowCore.API;
     typeof(AbpAspNetCoreMvcModule),
     typeof(AbpAutofacModule),
     typeof(WorkFlowCoreApplicationModule),
-    typeof(WorkFlowCoreEntityFrameworkCoreModule)
+    typeof(WorkFlowCoreEntityFrameworkCoreModule),
+    typeof(AbpIdentityHttpApiModule),
+    typeof(AbpPermissionManagementHttpApiModule),
+    typeof(AbpSettingManagementHttpApiModule),
+    typeof(AbpAccountHttpApiModule),
+    typeof(AbpAccountWebOpenIddictModule)
 )]
 public class WorkFlowCoreHttpApiModule : AbpModule
 {

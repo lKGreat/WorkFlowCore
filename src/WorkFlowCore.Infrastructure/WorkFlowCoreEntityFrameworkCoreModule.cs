@@ -1,12 +1,17 @@
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.AuditLogging.EntityFrameworkCore;
+using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.BlobStoring.FileSystem;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.Sqlite;
+using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.Modularity;
 using Volo.Abp.MultiTenancy;
+using Volo.Abp.PermissionManagement.EntityFrameworkCore;
+using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using WorkFlowCore.Domain;
 using WorkFlowCore.Infrastructure.Data;
 using WorkFlowCore.Infrastructure.Storage;
@@ -17,7 +22,12 @@ namespace WorkFlowCore.Infrastructure;
     typeof(WorkFlowCoreDomainModule),
     typeof(AbpEntityFrameworkCoreSqliteModule),
     typeof(AbpBlobStoringModule),
-    typeof(AbpBlobStoringFileSystemModule)
+    typeof(AbpBlobStoringFileSystemModule),
+    typeof(AbpIdentityEntityFrameworkCoreModule),
+    typeof(AbpPermissionManagementEntityFrameworkCoreModule),
+    typeof(AbpSettingManagementEntityFrameworkCoreModule),
+    typeof(AbpAuditLoggingEntityFrameworkCoreModule),
+    typeof(AbpBackgroundJobsEntityFrameworkCoreModule)
 )]
 public class WorkFlowCoreEntityFrameworkCoreModule : AbpModule
 {
