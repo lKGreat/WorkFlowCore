@@ -4,9 +4,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using WorkFlowCore.API;
 using WorkFlowCore.API.Middleware;
+using WorkFlowCore.Application.Common;
 using WorkFlowCore.Infrastructure.Data;
 using WorkFlowCore.Infrastructure.Repositories;
 using WorkFlowCore.Infrastructure.Services;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,24 @@ builder.Services.AddControllers()
         // 配置 JSON 序列化选项
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
+
+// 模型验证统一响应
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(kvp => kvp.Value?.Errors.Count > 0)
+            .ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
+
+        var response = ApiResponse.Fail("请求参数验证失败", ErrorCodes.ValidationError, errors);
+        response.TraceId = context.HttpContext.TraceIdentifier;
+
+        return new BadRequestObjectResult(response);
+    };
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

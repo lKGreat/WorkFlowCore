@@ -77,7 +77,7 @@ public class WorkflowController : BaseController
             
             if (instance == null)
             {
-                return ApiResponse<WorkflowInstanceDto>.Fail("工作流实例不存在", "NOT_FOUND").ToActionResult();
+                return ApiResponse<WorkflowInstanceDto>.Fail("工作流实例不存在", ErrorCodes.NotFound).ToActionResult();
             }
 
             var dto = new WorkflowInstanceDto

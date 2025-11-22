@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using WorkFlowCore.Application.Common;
+using WorkFlowCore.Application.Common.Exceptions;
 
 namespace WorkFlowCore.API.Middleware;
 
@@ -36,23 +37,15 @@ public class ExceptionHandlingMiddleware
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-        var response = exception switch
+        ApiResponse response = exception switch
         {
-            ArgumentNullException => ApiResponse.Fail("参数不能为空", "ARGUMENT_NULL"),
-            ArgumentException => ApiResponse.Fail(exception.Message, "ARGUMENT_ERROR"),
-            InvalidOperationException => ApiResponse.Fail(exception.Message, "INVALID_OPERATION"),
-            UnauthorizedAccessException => ApiResponse.Fail("未授权访问", "UNAUTHORIZED"),
-            KeyNotFoundException => ApiResponse.Fail("资源不存在", "NOT_FOUND"),
-            _ => ApiResponse.Fail("服务器内部错误", "INTERNAL_ERROR")
-        };
-
-        // 根据异常类型设置状态码
-        context.Response.StatusCode = exception switch
-        {
-            ArgumentException => (int)HttpStatusCode.BadRequest,
-            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
-            KeyNotFoundException => (int)HttpStatusCode.NotFound,
-            _ => (int)HttpStatusCode.InternalServerError
+            AppException appException => BuildResponse(context, appException.StatusCode, appException.Message, appException.ErrorCode, appException.Errors),
+            ArgumentNullException => BuildResponse(context, HttpStatusCode.BadRequest, "参数不能为空", ErrorCodes.ArgumentError),
+            ArgumentException => BuildResponse(context, HttpStatusCode.BadRequest, exception.Message, ErrorCodes.ArgumentError),
+            InvalidOperationException => BuildResponse(context, HttpStatusCode.BadRequest, exception.Message, ErrorCodes.InvalidOperation),
+            UnauthorizedAccessException => BuildResponse(context, HttpStatusCode.Unauthorized, "未授权访问", ErrorCodes.Unauthorized),
+            KeyNotFoundException => BuildResponse(context, HttpStatusCode.NotFound, "资源不存在", ErrorCodes.NotFound),
+            _ => BuildResponse(context, HttpStatusCode.InternalServerError, "服务器内部错误", ErrorCodes.InternalError)
         };
 
         var options = new JsonSerializerOptions
@@ -62,6 +55,14 @@ public class ExceptionHandlingMiddleware
 
         var json = JsonSerializer.Serialize(response, options);
         await context.Response.WriteAsync(json);
+    }
+
+    private static ApiResponse BuildResponse(HttpContext context, HttpStatusCode statusCode, string message, string errorCode, IDictionary<string, string[]>? errors = null)
+    {
+        context.Response.StatusCode = (int)statusCode;
+        var response = ApiResponse.Fail(message, errorCode, errors);
+        response.TraceId = context.TraceIdentifier;
+        return response;
     }
 }
 

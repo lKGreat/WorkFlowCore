@@ -56,7 +56,7 @@ public class TenantsController : BaseController
         
         if (tenant == null)
         {
-            return ApiResponse<TenantDto>.Fail("租户不存在", "NOT_FOUND").ToActionResult();
+            return ApiResponse<TenantDto>.Fail("租户不存在", ErrorCodes.NotFound).ToActionResult();
         }
 
         var dto = new TenantDto
@@ -107,7 +107,7 @@ public class TenantsController : BaseController
         
         if (tenant == null)
         {
-            return ApiResponse.Fail("租户不存在", "NOT_FOUND").ToActionResult();
+            return ApiResponse.Fail("租户不存在", ErrorCodes.NotFound).ToActionResult();
         }
 
         tenant.Name = dto.Name;
@@ -133,7 +133,7 @@ public class TenantsController : BaseController
         
         if (tenant == null)
         {
-            return ApiResponse.Fail("租户不存在", "NOT_FOUND").ToActionResult();
+            return ApiResponse.Fail("租户不存在", ErrorCodes.NotFound).ToActionResult();
         }
 
         tenant.IsDeleted = true;
