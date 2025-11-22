@@ -69,6 +69,13 @@ builder.Services.AddSingleton(sp => new JwtService(
 // 配置 AutoMapper
 builder.Services.AddAutoMapper(typeof(WorkFlowCore.Application.Mappings.MappingProfile));
 
+// 确保数据库已创建和迁移
+using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<WorkFlowDbContext>();
+    context.Database.Migrate(); // 应用迁移
+}
+
 // 配置 WorkflowCore
 builder.Services.AddWorkflow(x => x.UseSqlite(connectionString!, true));
 
