@@ -16,6 +16,9 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>
     public DbSet<ProcessDefinition> ProcessDefinitions { get; set; }
     public DbSet<ProcessInstance> ProcessInstances { get; set; }
     public DbSet<TaskInstance> TaskInstances { get; set; }
+    public DbSet<FileStorageProvider> FileStorageProviders { get; set; }
+    public DbSet<FileAttachment> FileAttachments { get; set; }
+    public DbSet<FileChunk> FileChunks { get; set; }
 
     public WorkFlowDbContext(DbContextOptions<WorkFlowDbContext> options) : base(options)
     {
@@ -70,6 +73,56 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>
         {
             b.ToTable("TaskInstances");
             b.ConfigureByConvention();
+        });
+
+        builder.Entity<FileStorageProvider>(b =>
+        {
+            b.ToTable("FileStorageProviders");
+            b.ConfigureByConvention();
+            b.HasIndex(p => p.ProviderType);
+            b.HasIndex(p => new { p.TenantId, p.IsEnabled });
+            b.Property(p => p.Configuration).HasMaxLength(4000);
+        });
+
+        builder.Entity<FileAttachment>(b =>
+        {
+            b.ToTable("FileAttachments");
+            b.ConfigureByConvention();
+            b.HasIndex(a => new { a.BusinessType, a.BusinessId });
+            b.HasIndex(a => a.Md5Hash);
+            b.HasIndex(a => a.AccessToken);
+            b.HasIndex(a => new { a.TenantId, a.UploadStatus });
+            
+            b.Property(a => a.FileName).HasMaxLength(500).IsRequired();
+            b.Property(a => a.OriginalFileName).HasMaxLength(500).IsRequired();
+            b.Property(a => a.ContentType).HasMaxLength(200).IsRequired();
+            b.Property(a => a.FileExtension).HasMaxLength(50).IsRequired();
+            b.Property(a => a.StoragePath).HasMaxLength(1000).IsRequired();
+            b.Property(a => a.Md5Hash).HasMaxLength(64).IsRequired();
+            b.Property(a => a.BusinessType).HasMaxLength(100).IsRequired();
+            b.Property(a => a.BusinessId).HasMaxLength(100).IsRequired();
+            b.Property(a => a.AccessToken).HasMaxLength(500);
+
+            b.HasOne(a => a.StorageProvider)
+                .WithMany()
+                .HasForeignKey(a => a.StorageProviderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<FileChunk>(b =>
+        {
+            b.ToTable("FileChunks");
+            b.ConfigureByConvention();
+            b.HasIndex(c => new { c.AttachmentId, c.ChunkIndex }).IsUnique();
+            b.HasIndex(c => new { c.AttachmentId, c.UploadStatus });
+            
+            b.Property(c => c.ChunkHash).HasMaxLength(64).IsRequired();
+            b.Property(c => c.StoragePath).HasMaxLength(1000).IsRequired();
+
+            b.HasOne(c => c.Attachment)
+                .WithMany()
+                .HasForeignKey(c => c.AttachmentId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

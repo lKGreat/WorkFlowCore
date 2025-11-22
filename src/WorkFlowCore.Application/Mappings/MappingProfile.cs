@@ -20,6 +20,13 @@ public class MappingProfile : Profile
         CreateMap<ProcessDefinition, ProcessDefinitionListDto>();
         CreateMap<ProcessDefinition, ProcessDefinitionVersionDto>();
         CreateMap<CreateProcessDefinitionRequest, ProcessDefinition>();
+
+        // 文件存储提供者映射
+        CreateMap<FileStorageProvider, FileStorageProviderDto>();
+        CreateMap<CreateFileStorageProviderRequest, FileStorageProvider>();
+
+        // 文件附件映射
+        CreateMap<FileAttachment, FileAttachmentDto>();
     }
 }
 

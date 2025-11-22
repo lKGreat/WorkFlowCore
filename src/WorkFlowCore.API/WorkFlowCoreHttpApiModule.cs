@@ -153,6 +153,11 @@ public class WorkFlowCoreHttpApiModule : AbpModule
 
         // 注册流程定义服务
         services.AddScoped<Application.Services.IProcessDefinitionService, ProcessDefinitionService>();
+
+        // 注册文件存储服务
+        services.AddScoped<Application.Services.IFileStorageProviderService, FileStorageProviderService>();
+        services.AddScoped<Application.Services.IFileUploadService, FileUploadService>();
+        services.AddScoped<Application.Services.IFileAccessService, FileAccessService>();
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
