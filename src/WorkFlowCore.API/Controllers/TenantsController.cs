@@ -38,7 +38,7 @@ public class TenantsController : BaseController
         
         if (dto == null)
         {
-            return ApiResponse<TenantDto>.Fail("租户不存在", "NOT_FOUND").ToActionResult();
+            return ApiResponse<TenantDto>.Fail("租户不存在", ErrorCodes.NotFound).ToActionResult();
         }
 
         return ApiResponse<TenantDto>.Ok(dto).ToActionResult();
@@ -62,7 +62,7 @@ public class TenantsController : BaseController
     {
         if (id != dto.Id)
         {
-            return BadRequest("ID mismatch");
+            return ApiResponse.Fail("租户不存在", ErrorCodes.NotFound).ToActionResult();
         }
 
         await _tenantService.UpdateAsync(dto);

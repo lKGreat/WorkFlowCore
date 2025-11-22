@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace WorkFlowCore.Application.Common;
 
@@ -12,6 +14,12 @@ public static class ResultExtensions
     /// </summary>
     public static ActionResult<ApiResponse<T>> ToActionResult<T>(this ApiResponse<T> response)
     {
+        response.TraceId = Activity.Current?.Id ?? response.TraceId;
+        if (string.IsNullOrWhiteSpace(response.TraceId))
+        {
+            response.TraceId = Guid.NewGuid().ToString("N");
+        }
+
         if (response.Success)
         {
             return new OkObjectResult(response);
@@ -20,10 +28,10 @@ public static class ResultExtensions
         // 根据错误代码返回不同的状态码
         return response.ErrorCode switch
         {
-            "NOT_FOUND" => new NotFoundObjectResult(response),
-            "UNAUTHORIZED" => new UnauthorizedResult(),
-            "FORBIDDEN" => new ObjectResult(response) { StatusCode = 403 },
-            "VALIDATION_ERROR" => new BadRequestObjectResult(response),
+            ErrorCodes.NotFound => new NotFoundObjectResult(response),
+            ErrorCodes.Unauthorized => new UnauthorizedResult(),
+            ErrorCodes.Forbidden => new ObjectResult(response) { StatusCode = StatusCodes.Status403Forbidden },
+            ErrorCodes.ValidationError => new BadRequestObjectResult(response),
             _ => new BadRequestObjectResult(response)
         };
     }
@@ -33,6 +41,12 @@ public static class ResultExtensions
     /// </summary>
     public static ActionResult<ApiResponse> ToActionResult(this ApiResponse response)
     {
+        response.TraceId = Activity.Current?.Id ?? response.TraceId;
+        if (string.IsNullOrWhiteSpace(response.TraceId))
+        {
+            response.TraceId = Guid.NewGuid().ToString("N");
+        }
+
         if (response.Success)
         {
             return new OkObjectResult(response);
@@ -40,10 +54,10 @@ public static class ResultExtensions
 
         return response.ErrorCode switch
         {
-            "NOT_FOUND" => new NotFoundObjectResult(response),
-            "UNAUTHORIZED" => new UnauthorizedResult(),
-            "FORBIDDEN" => new ObjectResult(response) { StatusCode = 403 },
-            "VALIDATION_ERROR" => new BadRequestObjectResult(response),
+            ErrorCodes.NotFound => new NotFoundObjectResult(response),
+            ErrorCodes.Unauthorized => new UnauthorizedResult(),
+            ErrorCodes.Forbidden => new ObjectResult(response) { StatusCode = StatusCodes.Status403Forbidden },
+            ErrorCodes.ValidationError => new BadRequestObjectResult(response),
             _ => new BadRequestObjectResult(response)
         };
     }

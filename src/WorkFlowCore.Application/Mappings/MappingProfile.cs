@@ -14,6 +14,12 @@ public class MappingProfile : Profile
         CreateMap<Tenant, TenantDto>().ReverseMap();
         CreateMap<User, UserDto>().ReverseMap();
         CreateMap<Department, DepartmentDto>().ReverseMap();
+
+        // 流程定义映射
+        CreateMap<ProcessDefinition, ProcessDefinitionDto>().ReverseMap();
+        CreateMap<ProcessDefinition, ProcessDefinitionListDto>();
+        CreateMap<ProcessDefinition, ProcessDefinitionVersionDto>();
+        CreateMap<CreateProcessDefinitionRequest, ProcessDefinition>();
     }
 }
 
