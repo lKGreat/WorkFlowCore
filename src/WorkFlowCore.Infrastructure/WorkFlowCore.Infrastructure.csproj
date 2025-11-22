@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\WorkFlowCore.Domain\WorkFlowCore.Domain.csproj" />
@@ -14,6 +14,10 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
     <PackageReference Include="WorkflowCore" Version="3.17.0" />
     <PackageReference Include="WorkflowCore.Persistence.EntityFramework" Version="3.17.0" />
+    <PackageReference Include="Volo.Abp.BlobStoring" Version="8.0.3" />
+    <PackageReference Include="Volo.Abp.BlobStoring.Aliyun" Version="8.0.3" />
+    <PackageReference Include="Volo.Abp.BlobStoring.Aws" Version="8.0.3" />
+    <PackageReference Include="Volo.Abp.BlobStoring.FileSystem" Version="8.0.3" />
   </ItemGroup>
 
   <PropertyGroup>

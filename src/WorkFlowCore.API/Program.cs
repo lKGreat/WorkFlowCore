@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Volo.Abp;
 using WorkFlowCore.API.Middleware;
+using WorkFlowCore.Application.Services;
 using WorkFlowCore.Infrastructure.Data;
+using WorkFlowCore.Infrastructure.FileStorage;
 using WorkFlowCore.Infrastructure.Repositories;
 using WorkFlowCore.Infrastructure.Services;
 
@@ -52,9 +55,10 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IPagedRepository<>), typeof(PagedRepository<>));
 
 // 注册服务
-builder.Services.AddScoped<WorkFlowCore.Application.Services.ITenantService, WorkFlowCore.Infrastructure.Services.TenantService>();
-builder.Services.AddScoped<WorkFlowCore.Application.Services.IUserService, WorkFlowCore.Infrastructure.Services.UserService>();
-builder.Services.AddScoped<WorkFlowCore.Application.Services.IDepartmentService, WorkFlowCore.Infrastructure.Services.DepartmentService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 
 // 注册 JWT 服务
 builder.Services.AddSingleton(sp => new JwtService(
@@ -69,6 +73,9 @@ builder.Services.AddAutoMapper(typeof(WorkFlowCore.Application.Mappings.MappingP
 
 // 配置 WorkflowCore
 builder.Services.AddWorkflow(x => x.UseSqlite(connectionString!, true));
+
+// 注册 ABP 文件存储模块
+builder.Services.AddApplication<WorkFlowCoreFileStorageModule>();
 
 // 配置 CORS（可选）
 builder.Services.AddCors(options =>
@@ -107,6 +114,8 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Dat
     .WithTags("Health");
 
 app.MapControllers();
+
+app.InitializeApplication();
 
 // 启动 WorkflowCore 引擎
 var host = app.Services.GetRequiredService<global::WorkflowCore.Interface.IWorkflowHost>();
