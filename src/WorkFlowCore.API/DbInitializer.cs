@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WorkFlowCore.Domain.Data;
 using WorkFlowCore.Domain.Entities;
 using WorkFlowCore.Infrastructure.Data;
 
@@ -18,7 +19,7 @@ public static class DbInitializer
         await context.Database.EnsureCreatedAsync();
 
         // 检查是否已存在测试租户
-        var testTenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var testTenantId = 1L;
         var existingTenant = await context.Tenants
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(t => t.Id == testTenantId);

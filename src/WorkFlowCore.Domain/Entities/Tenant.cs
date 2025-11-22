@@ -6,7 +6,7 @@ namespace WorkFlowCore.Domain.Entities;
 /// <summary>
 /// 租户实体
 /// </summary>
-public class Tenant : FullAuditedAggregateRoot<Guid>
+public class Tenant : FullAuditedAggregateRoot<long>
 {
     /// <summary>
     /// 租户名称
@@ -40,7 +40,7 @@ public class Tenant : FullAuditedAggregateRoot<Guid>
     
     protected Tenant() { }
 
-    public Tenant(Guid id, string name, string code) : base(id)
+    public Tenant(long id, string name, string code) : base(id)
     {
         Name = name;
         Code = code;

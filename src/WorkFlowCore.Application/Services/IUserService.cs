@@ -7,10 +7,10 @@ namespace WorkFlowCore.Application.Services;
 /// </summary>
 public interface IUserService
 {
-    Task<UserDto?> GetByIdAsync(Guid id);
+    Task<UserDto?> GetByIdAsync(long id);
     Task<List<UserDto>> GetAllAsync();
     Task<UserDto> CreateAsync(UserDto dto);
     Task UpdateAsync(UserDto dto);
-    Task DeleteAsync(Guid id);
+    Task DeleteAsync(long id);
 }
 

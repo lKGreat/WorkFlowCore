@@ -7,7 +7,7 @@ namespace WorkFlowCore.Domain.Entities;
 /// <summary>
 /// 角色实体
 /// </summary>
-public class Role : FullAuditedAggregateRoot<Guid>, IMultiTenant
+public class Role : FullAuditedAggregateRoot<long>, IMultiTenant
 {
     /// <summary>
     /// 角色名称
@@ -31,7 +31,7 @@ public class Role : FullAuditedAggregateRoot<Guid>, IMultiTenant
     
     protected Role() { }
 
-    public Role(Guid id, Guid? tenantId, string name, string code) : base(id)
+    public Role(long id, Guid? tenantId, string name, string code) : base(id)
     {
         TenantId = tenantId;
         Name = name;

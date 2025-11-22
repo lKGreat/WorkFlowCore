@@ -7,12 +7,12 @@ namespace WorkFlowCore.Domain.Entities;
 /// <summary>
 /// 流程实例实体
 /// </summary>
-public class ProcessInstance : AuditedAggregateRoot<Guid>, IMultiTenant
+public class ProcessInstance : AuditedAggregateRoot<long>, IMultiTenant
 {
     /// <summary>
     /// 流程定义ID
     /// </summary>
-    public Guid ProcessDefinitionId { get; set; }
+    public long ProcessDefinitionId { get; set; }
 
     /// <summary>
     /// 业务键（关联业务数据）
@@ -27,7 +27,7 @@ public class ProcessInstance : AuditedAggregateRoot<Guid>, IMultiTenant
     /// <summary>
     /// 发起人ID
     /// </summary>
-    public Guid InitiatorId { get; set; }
+    public long InitiatorId { get; set; }
 
     /// <summary>
     /// 当前状态（运行中、已完成、已终止）
@@ -56,7 +56,7 @@ public class ProcessInstance : AuditedAggregateRoot<Guid>, IMultiTenant
     
     protected ProcessInstance() { }
 
-    public ProcessInstance(Guid id, Guid? tenantId, Guid processDefinitionId) : base(id)
+    public ProcessInstance(long id, Guid? tenantId, long processDefinitionId) : base(id)
     {
         TenantId = tenantId;
         ProcessDefinitionId = processDefinitionId;

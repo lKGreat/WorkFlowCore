@@ -5,20 +5,21 @@ using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using WorkFlowCore.Application.DTOs;
+using WorkFlowCore.Domain.Data;
 using WorkFlowCore.Domain.Entities;
 
 namespace WorkFlowCore.Application.Services;
 
 public class UserService : ApplicationService, IUserService
 {
-    private readonly IRepository<User, Guid> _repository;
+    private readonly IRepository<User, long> _repository;
 
-    public UserService(IRepository<User, Guid> repository)
+    public UserService(IRepository<User, long> repository)
     {
         _repository = repository;
     }
 
-    public async Task<UserDto?> GetByIdAsync(Guid id)
+    public async Task<UserDto?> GetByIdAsync(long id)
     {
         var user = await _repository.FindAsync(id);
         return user == null ? null : ObjectMapper.Map<User, UserDto>(user);
@@ -37,7 +38,7 @@ public class UserService : ApplicationService, IUserService
              throw new UserFriendlyException($"用户名 '{dto.UserName}' 已存在");
         }
 
-        var user = new User(GuidGenerator.Create(), CurrentTenant.Id, dto.UserName, dto.RealName)
+        var user = new User(SnowflakeIdGenerator.NextId(), CurrentTenant.Id, dto.UserName, dto.RealName)
         {
             Email = dto.Email,
             Phone = dto.Phone,
@@ -73,7 +74,7 @@ public class UserService : ApplicationService, IUserService
         await _repository.UpdateAsync(user);
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(long id)
     {
         await _repository.DeleteAsync(id);
     }

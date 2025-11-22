@@ -7,12 +7,12 @@ namespace WorkFlowCore.Domain.Entities;
 /// <summary>
 /// 任务实例实体
 /// </summary>
-public class TaskInstance : AuditedAggregateRoot<Guid>, IMultiTenant
+public class TaskInstance : AuditedAggregateRoot<long>, IMultiTenant
 {
     /// <summary>
     /// 流程实例ID
     /// </summary>
-    public Guid ProcessInstanceId { get; set; }
+    public long ProcessInstanceId { get; set; }
 
     /// <summary>
     /// 任务节点ID
@@ -32,7 +32,7 @@ public class TaskInstance : AuditedAggregateRoot<Guid>, IMultiTenant
     /// <summary>
     /// 受理人ID
     /// </summary>
-    public Guid? AssigneeId { get; set; }
+    public long? AssigneeId { get; set; }
 
     /// <summary>
     /// 候选人ID列表（JSON数组）
@@ -83,7 +83,7 @@ public class TaskInstance : AuditedAggregateRoot<Guid>, IMultiTenant
     
     protected TaskInstance() { }
     
-    public TaskInstance(Guid id, Guid? tenantId, Guid processInstanceId, string name, string nodeId) : base(id)
+    public TaskInstance(long id, Guid? tenantId, long processInstanceId, string name, string nodeId) : base(id)
     {
         TenantId = tenantId;
         ProcessInstanceId = processInstanceId;

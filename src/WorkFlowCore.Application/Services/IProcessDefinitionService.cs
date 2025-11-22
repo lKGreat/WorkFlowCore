@@ -24,14 +24,14 @@ public interface IProcessDefinitionService
     /// <param name="tenantId">租户ID</param>
     /// <param name="createNewVersion">是否创建新版本</param>
     /// <returns>更新后的流程定义</returns>
-    Task<ProcessDefinitionDto> UpdateAsync(Guid id, UpdateProcessDefinitionRequest request, Guid tenantId, bool createNewVersion = false);
+    Task<ProcessDefinitionDto> UpdateAsync(long id, UpdateProcessDefinitionRequest request, Guid tenantId, bool createNewVersion = false);
 
     /// <summary>
     /// 删除流程定义（软删除）
     /// </summary>
     /// <param name="id">流程ID</param>
     /// <param name="tenantId">租户ID</param>
-    Task DeleteAsync(Guid id, Guid tenantId);
+    Task DeleteAsync(long id, Guid tenantId);
 
     /// <summary>
     /// 根据ID获取流程定义
@@ -39,7 +39,7 @@ public interface IProcessDefinitionService
     /// <param name="id">流程ID</param>
     /// <param name="tenantId">租户ID</param>
     /// <returns>流程定义</returns>
-    Task<ProcessDefinitionDto?> GetByIdAsync(Guid id, Guid tenantId);
+    Task<ProcessDefinitionDto?> GetByIdAsync(long id, Guid tenantId);
 
     /// <summary>
     /// 根据Key和版本获取流程定义

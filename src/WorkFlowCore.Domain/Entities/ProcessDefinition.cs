@@ -7,7 +7,7 @@ namespace WorkFlowCore.Domain.Entities;
 /// <summary>
 /// 流程定义实体
 /// </summary>
-public class ProcessDefinition : FullAuditedAggregateRoot<Guid>, IMultiTenant
+public class ProcessDefinition : FullAuditedAggregateRoot<long>, IMultiTenant
 {
     /// <summary>
     /// 流程名称
@@ -51,7 +51,7 @@ public class ProcessDefinition : FullAuditedAggregateRoot<Guid>, IMultiTenant
     
     protected ProcessDefinition() { }
 
-    public ProcessDefinition(Guid id, Guid? tenantId, string name, string key, string content) : base(id)
+    public ProcessDefinition(long id, Guid? tenantId, string name, string key, string content) : base(id)
     {
         TenantId = tenantId;
         Name = name;

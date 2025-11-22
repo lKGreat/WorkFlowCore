@@ -48,7 +48,7 @@ public class ProcessDefinitionsController : BaseController
     /// <returns>更新后的流程定义</returns>
     [HttpPut("{id}")]
     public async Task<ActionResult<ApiResponse<ProcessDefinitionDto>>> Update(
-        Guid id,
+        long id,
         [FromBody] UpdateProcessDefinitionRequest request,
         [FromQuery] bool createNewVersion = false)
     {
@@ -70,7 +70,7 @@ public class ProcessDefinitionsController : BaseController
     /// <param name="id">流程ID</param>
     /// <returns>删除结果</returns>
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ApiResponse>> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse>> Delete(long id)
     {
         try
         {
@@ -89,7 +89,7 @@ public class ProcessDefinitionsController : BaseController
     /// <param name="id">流程ID</param>
     /// <returns>流程定义</returns>
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApiResponse<ProcessDefinitionDto>>> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<ProcessDefinitionDto>>> GetById(long id)
     {
         try
         {

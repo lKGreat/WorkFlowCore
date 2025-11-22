@@ -6,7 +6,7 @@ namespace WorkFlowCore.Application.DTOs;
 /// <summary>
 /// 租户DTO
 /// </summary>
-public class TenantDto : FullAuditedEntityDto<Guid>
+public class TenantDto : FullAuditedEntityDto<long>
 {
     [Required(ErrorMessage = "租户名称不能为空")]
     [StringLength(100, ErrorMessage = "租户名称长度不能超过100个字符")]

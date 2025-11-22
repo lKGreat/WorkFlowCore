@@ -5,20 +5,21 @@ using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using WorkFlowCore.Application.DTOs;
+using WorkFlowCore.Domain.Data;
 using WorkFlowCore.Domain.Entities;
 
 namespace WorkFlowCore.Application.Services;
 
 public class DepartmentService : ApplicationService, IDepartmentService
 {
-    private readonly IRepository<Department, Guid> _repository;
+    private readonly IRepository<Department, long> _repository;
 
-    public DepartmentService(IRepository<Department, Guid> repository)
+    public DepartmentService(IRepository<Department, long> repository)
     {
         _repository = repository;
     }
 
-    public async Task<DepartmentDto?> GetByIdAsync(Guid id)
+    public async Task<DepartmentDto?> GetByIdAsync(long id)
     {
         var department = await _repository.FindAsync(id);
         return department == null ? null : ObjectMapper.Map<Department, DepartmentDto>(department);
@@ -40,7 +41,7 @@ public class DepartmentService : ApplicationService, IDepartmentService
             }
         }
 
-        var department = new Department(GuidGenerator.Create(), CurrentTenant.Id, dto.Name)
+        var department = new Department(SnowflakeIdGenerator.NextId(), CurrentTenant.Id, dto.Name)
         {
             Code = dto.Code,
             ParentId = dto.ParentId,
@@ -79,7 +80,7 @@ public class DepartmentService : ApplicationService, IDepartmentService
         await _repository.UpdateAsync(department);
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(long id)
     {
         if (await _repository.AnyAsync(d => d.ParentId == id))
         {

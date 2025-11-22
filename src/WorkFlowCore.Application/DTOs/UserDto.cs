@@ -6,7 +6,7 @@ namespace WorkFlowCore.Application.DTOs;
 /// <summary>
 /// 用户DTO
 /// </summary>
-public class UserDto : FullAuditedEntityDto<Guid>
+public class UserDto : FullAuditedEntityDto<long>
 {
     [Required(ErrorMessage = "用户名不能为空")]
     [StringLength(50, MinimumLength = 3, ErrorMessage = "用户名长度必须在3-50个字符之间")]
@@ -25,8 +25,8 @@ public class UserDto : FullAuditedEntityDto<Guid>
     [StringLength(20, ErrorMessage = "电话长度不能超过20个字符")]
     public string? Phone { get; set; }
 
-    public Guid? DepartmentId { get; set; }
-    public Guid? ManagerId { get; set; }
+    public long? DepartmentId { get; set; }
+    public long? ManagerId { get; set; }
     public bool IsEnabled { get; set; }
 }
 

@@ -7,7 +7,7 @@ namespace WorkFlowCore.Domain.Entities;
 /// <summary>
 /// 部门实体
 /// </summary>
-public class Department : FullAuditedAggregateRoot<Guid>, IMultiTenant
+public class Department : FullAuditedAggregateRoot<long>, IMultiTenant
 {
     /// <summary>
     /// 部门名称
@@ -22,12 +22,12 @@ public class Department : FullAuditedAggregateRoot<Guid>, IMultiTenant
     /// <summary>
     /// 父级部门ID
     /// </summary>
-    public Guid? ParentId { get; set; }
+    public long? ParentId { get; set; }
 
     /// <summary>
     /// 部门主管ID
     /// </summary>
-    public Guid? ManagerId { get; set; }
+    public long? ManagerId { get; set; }
 
     /// <summary>
     /// 排序号
@@ -41,7 +41,7 @@ public class Department : FullAuditedAggregateRoot<Guid>, IMultiTenant
 
     protected Department() { }
 
-    public Department(Guid id, Guid? tenantId, string name) : base(id)
+    public Department(long id, Guid? tenantId, string name) : base(id)
     {
         TenantId = tenantId;
         Name = name;

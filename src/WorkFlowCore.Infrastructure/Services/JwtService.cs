@@ -26,7 +26,7 @@ public class JwtService
     /// <summary>
     /// 生成 JWT Token
     /// </summary>
-    public string GenerateToken(Guid userId, string userName, Guid tenantId, List<string>? roles = null)
+    public string GenerateToken(long userId, string userName, Guid tenantId, List<string>? roles = null)
     {
         var claims = new List<Claim>
         {

@@ -7,10 +7,10 @@ namespace WorkFlowCore.Application.Services;
 /// </summary>
 public interface IDepartmentService
 {
-    Task<DepartmentDto?> GetByIdAsync(Guid id);
+    Task<DepartmentDto?> GetByIdAsync(long id);
     Task<List<DepartmentDto>> GetAllAsync();
     Task<DepartmentDto> CreateAsync(DepartmentDto dto);
     Task UpdateAsync(DepartmentDto dto);
-    Task DeleteAsync(Guid id);
+    Task DeleteAsync(long id);
 }
 

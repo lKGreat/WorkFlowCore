@@ -32,7 +32,7 @@ public class TenantsController : BaseController
     /// 根据ID获取租户
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApiResponse<TenantDto>>> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<TenantDto>>> GetById(long id)
     {
         var dto = await _tenantService.GetAsync(id);
         
@@ -58,7 +58,7 @@ public class TenantsController : BaseController
     /// 更新租户
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponse>> Update(Guid id, [FromBody] TenantDto dto)
+    public async Task<ActionResult<ApiResponse>> Update(long id, [FromBody] TenantDto dto)
     {
         if (id != dto.Id)
         {
@@ -73,7 +73,7 @@ public class TenantsController : BaseController
     /// 删除租户
     /// </summary>
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ApiResponse>> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse>> Delete(long id)
     {
         await _tenantService.DeleteAsync(id);
         return ApiResponse.Ok("删除成功").ToActionResult();

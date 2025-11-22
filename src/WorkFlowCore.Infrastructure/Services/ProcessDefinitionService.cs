@@ -3,6 +3,7 @@ using Volo.Abp.Domain.Repositories;
 using WorkFlowCore.Application.DTOs;
 using WorkFlowCore.Application.Services;
 using WorkFlowCore.Domain.Common;
+using WorkFlowCore.Domain.Data;
 using WorkFlowCore.Domain.Entities;
 
 namespace WorkFlowCore.Infrastructure.Services;
@@ -12,9 +13,9 @@ namespace WorkFlowCore.Infrastructure.Services;
 /// </summary>
 public class ProcessDefinitionService : ApplicationService, IProcessDefinitionService
 {
-    private readonly IRepository<ProcessDefinition, Guid> _repository;
+    private readonly IRepository<ProcessDefinition, long> _repository;
 
-    public ProcessDefinitionService(IRepository<ProcessDefinition, Guid> repository)
+    public ProcessDefinitionService(IRepository<ProcessDefinition, long> repository)
     {
         _repository = repository;
     }
@@ -40,7 +41,7 @@ public class ProcessDefinitionService : ApplicationService, IProcessDefinitionSe
         }
 
         var processDefinition = new ProcessDefinition(
-            GuidGenerator.Create(),
+            SnowflakeIdGenerator.NextId(),
             tenantId,
             request.Name,
             request.Key,
@@ -61,7 +62,7 @@ public class ProcessDefinitionService : ApplicationService, IProcessDefinitionSe
     /// <summary>
     /// 更新流程定义
     /// </summary>
-    public async Task<ProcessDefinitionDto> UpdateAsync(Guid id, UpdateProcessDefinitionRequest request, Guid tenantId, bool createNewVersion = false)
+    public async Task<ProcessDefinitionDto> UpdateAsync(long id, UpdateProcessDefinitionRequest request, Guid tenantId, bool createNewVersion = false)
     {
         var queryable = await _repository.GetQueryableAsync();
         var processDefinition = await AsyncExecuter.FirstOrDefaultAsync(
@@ -77,7 +78,7 @@ public class ProcessDefinitionService : ApplicationService, IProcessDefinitionSe
         {
             // 创建新版本
             var newVersion = new ProcessDefinition(
-                GuidGenerator.Create(),
+                SnowflakeIdGenerator.NextId(),
                 tenantId,
                 request.Name ?? processDefinition.Name,
                 processDefinition.Key,
@@ -112,7 +113,7 @@ public class ProcessDefinitionService : ApplicationService, IProcessDefinitionSe
     /// <summary>
     /// 删除流程定义（软删除）
     /// </summary>
-    public async Task DeleteAsync(Guid id, Guid tenantId)
+    public async Task DeleteAsync(long id, Guid tenantId)
     {
         var queryable = await _repository.GetQueryableAsync();
         var processDefinition = await AsyncExecuter.FirstOrDefaultAsync(
@@ -131,7 +132,7 @@ public class ProcessDefinitionService : ApplicationService, IProcessDefinitionSe
     /// <summary>
     /// 根据ID获取流程定义
     /// </summary>
-    public async Task<ProcessDefinitionDto?> GetByIdAsync(Guid id, Guid tenantId)
+    public async Task<ProcessDefinitionDto?> GetByIdAsync(long id, Guid tenantId)
     {
         var queryable = await _repository.GetQueryableAsync();
         var processDefinition = await AsyncExecuter.FirstOrDefaultAsync(

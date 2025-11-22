@@ -12,10 +12,10 @@ namespace WorkFlowCore.API.Controllers;
 /// </summary>
 public class AuthController : BaseController
 {
-    private readonly IRepository<User, Guid> _userRepository;
+    private readonly IRepository<User, long> _userRepository;
     private readonly JwtService _jwtService;
 
-    public AuthController(IRepository<User, Guid> userRepository, JwtService jwtService)
+    public AuthController(IRepository<User, long> userRepository, JwtService jwtService)
     {
         _userRepository = userRepository;
         _jwtService = jwtService;

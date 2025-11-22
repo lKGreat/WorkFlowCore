@@ -8,13 +8,14 @@ using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using WorkFlowCore.Application.DTOs;
 using WorkFlowCore.Domain.Common;
+using WorkFlowCore.Domain.Data;
 using WorkFlowCore.Domain.Entities;
 
 namespace WorkFlowCore.Application.Services;
 
-public class TenantService : CrudAppService<Tenant, TenantDto, Guid, PagedAndSortedResultRequestDto, TenantDto, TenantDto>, ITenantService
+public class TenantService : CrudAppService<Tenant, TenantDto, long, PagedAndSortedResultRequestDto, TenantDto, TenantDto>, ITenantService
 {
-    public TenantService(IRepository<Tenant, Guid> repository) : base(repository)
+    public TenantService(IRepository<Tenant, long> repository) : base(repository)
     {
     }
 
@@ -52,7 +53,7 @@ public class TenantService : CrudAppService<Tenant, TenantDto, Guid, PagedAndSor
             throw new UserFriendlyException($"租户编码 '{input.Code}' 已存在");
         }
 
-        var tenant = new Tenant(GuidGenerator.Create(), input.Name, input.Code)
+        var tenant = new Tenant(SnowflakeIdGenerator.NextId(), input.Name, input.Code)
         {
             ContactPerson = input.ContactPerson,
             ContactPhone = input.ContactPhone,
@@ -65,7 +66,7 @@ public class TenantService : CrudAppService<Tenant, TenantDto, Guid, PagedAndSor
         return ObjectMapper.Map<Tenant, TenantDto>(tenant);
     }
 
-    public override async Task<TenantDto> UpdateAsync(Guid id, TenantDto input)
+    public override async Task<TenantDto> UpdateAsync(long id, TenantDto input)
     {
         var tenant = await Repository.GetAsync(id);
         

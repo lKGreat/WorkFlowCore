@@ -1,8 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using WorkFlowCore.API;
+using WorkFlowCore.Domain.Data;
 using WorkFlowCore.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 初始化雪花算法主键生成器
+var workerId = builder.Configuration.GetValue<long>("SnowflakeId:WorkerId", 1);
+var datacenterId = builder.Configuration.GetValue<long>("SnowflakeId:DatacenterId", 1);
+SnowflakeIdGenerator.Initialize(workerId, datacenterId);
 
 // 使用Autofac作为DI容器
 builder.Host.UseAutofac();

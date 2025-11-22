@@ -30,10 +30,12 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>
 
         /* Configure your own tables/entities inside here */
 
+        // 配置所有实体主键不自动生成（使用雪花算法手动生成）
         builder.Entity<Tenant>(b =>
         {
             b.ToTable("Tenants");
             b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
             b.HasIndex(t => t.Code).IsUnique();
         });
 
@@ -41,6 +43,7 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>
         {
             b.ToTable("Users");
             b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
             b.HasIndex(u => u.UserName);
         });
 
@@ -48,18 +51,21 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>
         {
             b.ToTable("Departments");
             b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
         });
 
         builder.Entity<Role>(b =>
         {
             b.ToTable("Roles");
             b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
         });
 
         builder.Entity<ProcessDefinition>(b =>
         {
             b.ToTable("ProcessDefinitions");
             b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
             b.HasIndex(p => new { p.Key, p.Version });
         });
 
@@ -67,18 +73,21 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>
         {
             b.ToTable("ProcessInstances");
             b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
         });
 
         builder.Entity<TaskInstance>(b =>
         {
             b.ToTable("TaskInstances");
             b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
         });
 
         builder.Entity<FileStorageProvider>(b =>
         {
             b.ToTable("FileStorageProviders");
             b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
             b.HasIndex(p => p.ProviderType);
             b.HasIndex(p => new { p.TenantId, p.IsEnabled });
             b.Property(p => p.Configuration).HasMaxLength(4000);
@@ -88,6 +97,7 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>
         {
             b.ToTable("FileAttachments");
             b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
             b.HasIndex(a => new { a.BusinessType, a.BusinessId });
             b.HasIndex(a => a.Md5Hash);
             b.HasIndex(a => a.AccessToken);
@@ -113,6 +123,7 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>
         {
             b.ToTable("FileChunks");
             b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
             b.HasIndex(c => new { c.AttachmentId, c.ChunkIndex }).IsUnique();
             b.HasIndex(c => new { c.AttachmentId, c.UploadStatus });
             
