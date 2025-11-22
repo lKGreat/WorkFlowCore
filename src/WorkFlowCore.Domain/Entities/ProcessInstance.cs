@@ -1,11 +1,13 @@
-using WorkFlowCore.Domain.Common;
+using System;
+using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.MultiTenancy;
 
 namespace WorkFlowCore.Domain.Entities;
 
 /// <summary>
 /// 流程实例实体
 /// </summary>
-public class ProcessInstance : Entity<Guid>, ITenantEntity
+public class ProcessInstance : AuditedAggregateRoot<Guid>, IMultiTenant
 {
     /// <summary>
     /// 流程定义ID
@@ -38,7 +40,7 @@ public class ProcessInstance : Entity<Guid>, ITenantEntity
     public string? Variables { get; set; }
 
     /// <summary>
-    /// 开始时间
+    /// 开始时间 (可以使用 CreationTime，但为了兼容保留业务含义)
     /// </summary>
     public DateTime StartTime { get; set; }
 
@@ -50,6 +52,13 @@ public class ProcessInstance : Entity<Guid>, ITenantEntity
     /// <summary>
     /// 租户ID
     /// </summary>
-    public Guid TenantId { get; set; }
-}
+    public Guid? TenantId { get; protected set; }
+    
+    protected ProcessInstance() { }
 
+    public ProcessInstance(Guid id, Guid? tenantId, Guid processDefinitionId) : base(id)
+    {
+        TenantId = tenantId;
+        ProcessDefinitionId = processDefinitionId;
+    }
+}

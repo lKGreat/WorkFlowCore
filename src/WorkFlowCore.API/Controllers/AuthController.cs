@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Volo.Abp.Domain.Repositories;
 using WorkFlowCore.Application.Common;
 using WorkFlowCore.Application.DTOs;
 using WorkFlowCore.Domain.Entities;
-using WorkFlowCore.Infrastructure.Repositories;
 using WorkFlowCore.Infrastructure.Services;
 
 namespace WorkFlowCore.API.Controllers;
@@ -12,10 +12,10 @@ namespace WorkFlowCore.API.Controllers;
 /// </summary>
 public class AuthController : BaseController
 {
-    private readonly IRepository<User> _userRepository;
+    private readonly IRepository<User, Guid> _userRepository;
     private readonly JwtService _jwtService;
 
-    public AuthController(IRepository<User> userRepository, JwtService jwtService)
+    public AuthController(IRepository<User, Guid> userRepository, JwtService jwtService)
     {
         _userRepository = userRepository;
         _jwtService = jwtService;
@@ -28,8 +28,8 @@ public class AuthController : BaseController
     public async Task<ActionResult<ApiResponse<LoginResponse>>> Login([FromBody] LoginRequest request)
     {
         // 查找用户
-        var users = await _userRepository.FindAsync(u => u.UserName == request.UserName);
-        var user = users.FirstOrDefault();
+        var queryable = await _userRepository.GetQueryableAsync();
+        var user = queryable.FirstOrDefault(u => u.UserName == request.UserName);
 
         if (user == null || !user.IsEnabled)
         {
@@ -40,7 +40,7 @@ public class AuthController : BaseController
         // 这里暂时跳过密码验证
 
         // 生成 Token
-        var token = _jwtService.GenerateToken(user.Id, user.UserName, user.TenantId);
+        var token = _jwtService.GenerateToken(user.Id, user.UserName, user.TenantId ?? Guid.Empty);
         var refreshToken = _jwtService.GenerateRefreshToken();
 
         var response = new LoginResponse
@@ -74,4 +74,3 @@ public class AuthController : BaseController
         return ApiResponse<LoginResponse>.Fail("刷新Token功能待实现").ToActionResult();
     }
 }
-

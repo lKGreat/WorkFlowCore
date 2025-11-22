@@ -1,4 +1,5 @@
 using WorkFlowCore.Application.DTOs;
+using WorkFlowCore.Domain.Common;
 
 namespace WorkFlowCore.Application.Services;
 
@@ -9,8 +10,8 @@ public interface ITenantService
 {
     Task<TenantDto?> GetByIdAsync(Guid id);
     Task<List<TenantDto>> GetAllAsync();
+    Task<PagedResponse<TenantDto>> GetPagedAsync(PagedRequest request);
     Task<TenantDto> CreateAsync(TenantDto dto);
     Task UpdateAsync(TenantDto dto);
     Task DeleteAsync(Guid id);
 }
-

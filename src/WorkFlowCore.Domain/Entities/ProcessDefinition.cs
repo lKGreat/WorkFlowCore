@@ -1,11 +1,13 @@
-using WorkFlowCore.Domain.Common;
+using System;
+using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.MultiTenancy;
 
 namespace WorkFlowCore.Domain.Entities;
 
 /// <summary>
 /// 流程定义实体
 /// </summary>
-public class ProcessDefinition : Entity<Guid>, ITenantEntity, ISoftDelete
+public class ProcessDefinition : FullAuditedAggregateRoot<Guid>, IMultiTenant
 {
     /// <summary>
     /// 流程名称
@@ -45,16 +47,15 @@ public class ProcessDefinition : Entity<Guid>, ITenantEntity, ISoftDelete
     /// <summary>
     /// 租户ID
     /// </summary>
-    public Guid TenantId { get; set; }
+    public Guid? TenantId { get; protected set; }
+    
+    protected ProcessDefinition() { }
 
-    /// <summary>
-    /// 是否已删除
-    /// </summary>
-    public bool IsDeleted { get; set; }
-
-    /// <summary>
-    /// 删除时间
-    /// </summary>
-    public DateTime? DeletedAt { get; set; }
+    public ProcessDefinition(Guid id, Guid? tenantId, string name, string key, string content) : base(id)
+    {
+        TenantId = tenantId;
+        Name = name;
+        Key = key;
+        Content = content;
+    }
 }
-

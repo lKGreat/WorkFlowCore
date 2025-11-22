@@ -1,11 +1,13 @@
-using WorkFlowCore.Domain.Common;
+using System;
+using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.MultiTenancy;
 
 namespace WorkFlowCore.Domain.Entities;
 
 /// <summary>
 /// 任务实例实体
 /// </summary>
-public class TaskInstance : Entity<Guid>, ITenantEntity
+public class TaskInstance : AuditedAggregateRoot<Guid>, IMultiTenant
 {
     /// <summary>
     /// 流程实例ID
@@ -57,10 +59,7 @@ public class TaskInstance : Entity<Guid>, ITenantEntity
     /// </summary>
     public DateTime? DueDate { get; set; }
 
-    /// <summary>
-    /// 创建时间
-    /// </summary>
-    public DateTime CreateTime { get; set; }
+    // CreationTime 从基类继承，移除原 CreateTime
 
     /// <summary>
     /// 完成时间
@@ -80,6 +79,15 @@ public class TaskInstance : Entity<Guid>, ITenantEntity
     /// <summary>
     /// 租户ID
     /// </summary>
-    public Guid TenantId { get; set; }
+    public Guid? TenantId { get; protected set; }
+    
+    protected TaskInstance() { }
+    
+    public TaskInstance(Guid id, Guid? tenantId, Guid processInstanceId, string name, string nodeId) : base(id)
+    {
+        TenantId = tenantId;
+        ProcessInstanceId = processInstanceId;
+        Name = name;
+        NodeId = nodeId;
+    }
 }
-

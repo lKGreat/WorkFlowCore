@@ -1,11 +1,13 @@
-using WorkFlowCore.Domain.Common;
+using System;
+using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.MultiTenancy;
 
 namespace WorkFlowCore.Domain.Entities;
 
 /// <summary>
 /// 角色实体
 /// </summary>
-public class Role : Entity<Guid>, ITenantEntity, ISoftDelete
+public class Role : FullAuditedAggregateRoot<Guid>, IMultiTenant
 {
     /// <summary>
     /// 角色名称
@@ -25,16 +27,14 @@ public class Role : Entity<Guid>, ITenantEntity, ISoftDelete
     /// <summary>
     /// 租户ID
     /// </summary>
-    public Guid TenantId { get; set; }
+    public Guid? TenantId { get; protected set; }
+    
+    protected Role() { }
 
-    /// <summary>
-    /// 是否已删除
-    /// </summary>
-    public bool IsDeleted { get; set; }
-
-    /// <summary>
-    /// 删除时间
-    /// </summary>
-    public DateTime? DeletedAt { get; set; }
+    public Role(Guid id, Guid? tenantId, string name, string code) : base(id)
+    {
+        TenantId = tenantId;
+        Name = name;
+        Code = code;
+    }
 }
-

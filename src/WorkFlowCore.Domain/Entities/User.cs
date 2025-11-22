@@ -1,11 +1,13 @@
-using WorkFlowCore.Domain.Common;
+using System;
+using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.MultiTenancy;
 
 namespace WorkFlowCore.Domain.Entities;
 
 /// <summary>
 /// 用户实体
 /// </summary>
-public class User : Entity<Guid>, ITenantEntity, ISoftDelete
+public class User : FullAuditedAggregateRoot<Guid>, IMultiTenant
 {
     /// <summary>
     /// 用户名（登录用）
@@ -50,16 +52,15 @@ public class User : Entity<Guid>, ITenantEntity, ISoftDelete
     /// <summary>
     /// 租户ID
     /// </summary>
-    public Guid TenantId { get; set; }
+    public Guid? TenantId { get; protected set; }
 
-    /// <summary>
-    /// 是否已删除
-    /// </summary>
-    public bool IsDeleted { get; set; }
+    protected User() { }
 
-    /// <summary>
-    /// 删除时间
-    /// </summary>
-    public DateTime? DeletedAt { get; set; }
+    public User(Guid id, Guid? tenantId, string userName, string realName) 
+        : base(id)
+    {
+        TenantId = tenantId;
+        UserName = userName;
+        RealName = realName;
+    }
 }
-

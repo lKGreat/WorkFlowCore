@@ -1,11 +1,12 @@
-using WorkFlowCore.Domain.Common;
+using System;
+using Volo.Abp.Domain.Entities.Auditing;
 
 namespace WorkFlowCore.Domain.Entities;
 
 /// <summary>
 /// 租户实体
 /// </summary>
-public class Tenant : Entity<Guid>, ISoftDelete
+public class Tenant : FullAuditedAggregateRoot<Guid>
 {
     /// <summary>
     /// 租户名称
@@ -36,15 +37,12 @@ public class Tenant : Entity<Guid>, ISoftDelete
     /// 是否启用
     /// </summary>
     public bool IsEnabled { get; set; } = true;
+    
+    protected Tenant() { }
 
-    /// <summary>
-    /// 是否已删除
-    /// </summary>
-    public bool IsDeleted { get; set; }
-
-    /// <summary>
-    /// 删除时间
-    /// </summary>
-    public DateTime? DeletedAt { get; set; }
+    public Tenant(Guid id, string name, string code) : base(id)
+    {
+        Name = name;
+        Code = code;
+    }
 }
-
