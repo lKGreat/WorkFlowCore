@@ -34,6 +34,12 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// 注册HttpContextAccessor（用于获取当前用户信息）
+builder.Services.AddHttpContextAccessor();
+
+// 注册当前用户服务
+builder.Services.AddScoped<WorkFlowCore.Application.Common.ICurrentUserService, WorkFlowCore.Infrastructure.Services.CurrentUserService>();
+
 // ���� JWT ��֤
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddAuthentication(options =>
