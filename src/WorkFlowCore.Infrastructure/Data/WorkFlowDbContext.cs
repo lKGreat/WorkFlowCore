@@ -1,24 +1,42 @@
 using Microsoft.EntityFrameworkCore;
+using Volo.Abp.AuditLogging.EntityFrameworkCore;
+using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.Modeling;
+using Volo.Abp.Identity;
+using Volo.Abp.Identity.EntityFrameworkCore;
+using Volo.Abp.PermissionManagement.EntityFrameworkCore;
+using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using WorkFlowCore.Domain.Entities;
+using WorkFlowCore.Domain.Identity;
 
 namespace WorkFlowCore.Infrastructure.Data;
 
 [ConnectionStringName("Default")]
-public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>
+public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbContext
 {
     public DbSet<Tenant> Tenants { get; set; }
-    public DbSet<User> Users { get; set; }
+    public DbSet<User> WorkFlowUsers { get; set; }
     public DbSet<Department> Departments { get; set; }
-    public DbSet<Role> Roles { get; set; }
+    public DbSet<Role> WorkFlowRoles { get; set; }
     public DbSet<ProcessDefinition> ProcessDefinitions { get; set; }
     public DbSet<ProcessInstance> ProcessInstances { get; set; }
     public DbSet<TaskInstance> TaskInstances { get; set; }
     public DbSet<FileStorageProvider> FileStorageProviders { get; set; }
     public DbSet<FileAttachment> FileAttachments { get; set; }
     public DbSet<FileChunk> FileChunks { get; set; }
+    public DbSet<UserThirdPartyAccount> UserThirdPartyAccounts { get; set; }
+    
+    // ABP Identity tables (required by IIdentityDbContext)
+    public DbSet<IdentityUser> Users => Set<IdentityUser>();
+    public DbSet<IdentityRole> Roles => Set<IdentityRole>();
+    public DbSet<IdentityClaimType> ClaimTypes => Set<IdentityClaimType>();
+    public DbSet<OrganizationUnit> OrganizationUnits => Set<OrganizationUnit>();
+    public DbSet<IdentitySecurityLog> SecurityLogs => Set<IdentitySecurityLog>();
+    public DbSet<IdentityLinkUser> LinkUsers => Set<IdentityLinkUser>();
+    public DbSet<IdentityUserDelegation> UserDelegations => Set<IdentityUserDelegation>();
+    public DbSet<IdentitySession> Sessions => Set<IdentitySession>();
 
     public WorkFlowDbContext(DbContextOptions<WorkFlowDbContext> options) : base(options)
     {
@@ -28,7 +46,44 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>
     {
         base.OnModelCreating(builder);
 
+        /* Configure ABP Identity module */
+        builder.ConfigureIdentity();
+        builder.ConfigurePermissionManagement();
+        builder.ConfigureSettingManagement();
+        builder.ConfigureAuditLogging();
+        builder.ConfigureBackgroundJobs();
+
         /* Configure your own tables/entities inside here */
+
+        // 配置 AppUser 扩展字段
+        builder.Entity<AppUser>(b =>
+        {
+            b.ToTable("AbpUsers");
+            b.Property(u => u.NickName).HasMaxLength(100);
+            b.Property(u => u.Avatar).HasMaxLength(500);
+            b.Property(u => u.LastLoginIp).HasMaxLength(50);
+            b.Property(u => u.Status).HasMaxLength(10);
+        });
+
+        // 配置第三方账号绑定
+        builder.Entity<UserThirdPartyAccount>(b =>
+        {
+            b.ToTable("UserThirdPartyAccounts");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.HasIndex(a => new { a.Provider, a.OpenId }).IsUnique();
+            b.HasIndex(a => a.UserId);
+            b.Property(a => a.Provider).HasMaxLength(50).IsRequired();
+            b.Property(a => a.OpenId).HasMaxLength(200).IsRequired();
+            b.Property(a => a.UnionId).HasMaxLength(200);
+            b.Property(a => a.NickName).HasMaxLength(100);
+            b.Property(a => a.Avatar).HasMaxLength(500);
+            
+            b.HasOne(a => a.User)
+                .WithMany(u => u.ThirdPartyAccounts)
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // 配置所有实体主键不自动生成（使用雪花算法手动生成）
         builder.Entity<Tenant>(b =>
