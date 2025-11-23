@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useAuthStore } from '../stores/authStore';
 import { useRouterStore } from '../stores/routerStore';
@@ -29,14 +29,10 @@ const agentDebugLog = (
 };
 // #endregion
 
-interface AuthGuardProps {
-  children: React.ReactNode;
-}
-
 /**
  * 路由守卫组件
  */
-const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
+const AuthGuard: React.FC = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
@@ -106,13 +102,17 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
-      }}>
-        <Spin size="large" tip="加载中..." />
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
+        <Spin size="large" tip="加载中..." spinning>
+          <div style={{ minHeight: 80 }} />
+        </Spin>
       </div>
     );
   }
@@ -127,7 +127,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };
 
 export default AuthGuard;

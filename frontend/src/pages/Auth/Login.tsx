@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Tabs, Space, message, Card, Divider } from 'antd';
+import { Form, Input, Button, Tabs, Space, message, Card, Divider, type TabsProps } from 'antd';
 import {
   UserOutlined,
   LockOutlined,
@@ -55,25 +55,6 @@ const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const authStore = useAuthStore();
-
-  // 获取图形验证码
-  useEffect(() => {
-    if (activeTab === 'username') {
-      agentDebugLog('H4', 'LoginPage.useEffect', 'fetchCaptcha triggered', {
-        activeTab,
-        hasCaptcha: Boolean(captcha),
-      });
-      fetchCaptcha();
-    }
-  }, [activeTab]);
-
-  // 倒计时
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [countdown]);
 
   const fetchCaptcha = async () => {
     try {
@@ -211,120 +192,154 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const tabItems: TabsProps['items'] = [
+    {
+      key: 'username',
+      label: '账号登录',
+      children: (
+        <Form
+          form={usernameForm}
+          name="username_login"
+          onFinish={handleUsernameLogin}
+          autoComplete="off"
+        >
+          <Form.Item
+            name="username"
+            rules={[{ required: true, message: '请输入用户名' }]}
+          >
+            <Input
+              prefix={<UserOutlined />}
+              placeholder="用户名"
+              size="large"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: '请输入密码' }]}
+          >
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="密码"
+              size="large"
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Space style={{ width: '100%' }}>
+              <Form.Item
+                name="captchaCode"
+                noStyle
+                rules={[{ required: true, message: '请输入验证码' }]}
+              >
+                <Input placeholder="验证码" size="large" style={{ width: '200px' }} />
+              </Form.Item>
+              {captcha && (
+                <img
+                  src={captcha.imageBase64}
+                  alt="验证码"
+                  onClick={fetchCaptcha}
+                  style={{ height: '40px', cursor: 'pointer', border: '1px solid #d9d9d9', borderRadius: '2px' }}
+                />
+              )}
+            </Space>
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading} block size="large">
+              登录
+            </Button>
+          </Form.Item>
+        </Form>
+      ),
+    },
+    {
+      key: 'phone',
+      label: '手机号登录',
+      children: (
+        <Form
+          form={phoneForm}
+          name="phone_login"
+          onFinish={handlePhoneLogin}
+          autoComplete="off"
+        >
+          <Form.Item
+            name="phone"
+            rules={[
+              { required: true, message: '请输入手机号' },
+              { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' },
+            ]}
+          >
+            <Input
+              prefix={<MobileOutlined />}
+              placeholder="手机号"
+              size="large"
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Space style={{ width: '100%' }}>
+              <Form.Item
+                name="smsCode"
+                noStyle
+                rules={[{ required: true, message: '请输入验证码' }]}
+              >
+                <Input placeholder="短信验证码" size="large" style={{ width: '200px' }} />
+              </Form.Item>
+              <Button
+                size="large"
+                onClick={handleSendSmsCode}
+                loading={smsLoading}
+                disabled={countdown > 0}
+              >
+                {countdown > 0 ? `${countdown}秒后重试` : '发送验证码'}
+              </Button>
+            </Space>
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading} block size="large">
+              登录
+            </Button>
+          </Form.Item>
+        </Form>
+      ),
+    },
+    {
+      key: 'qrcode',
+      label: '扫码登录',
+      children: <QrCodeLogin />,
+    },
+  ];
+
+  // 获取图形验证码
+  useEffect(() => {
+    if (activeTab === 'username') {
+      agentDebugLog('H4', 'LoginPage.useEffect', 'fetchCaptcha triggered', {
+        activeTab,
+        hasCaptcha: Boolean(captcha),
+      });
+      fetchCaptcha();
+    }
+  }, [activeTab]);
+
+  // 倒计时
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
   return (
     <div className="login-container">
       <Card className="login-card" title="工作流管理系统">
-        <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key as any)} centered>
-          <Tabs.TabPane tab="账号登录" key="username">
-            <Form
-              form={usernameForm}
-              name="username_login"
-              onFinish={handleUsernameLogin}
-              autoComplete="off"
-            >
-              <Form.Item
-                name="username"
-                rules={[{ required: true, message: '请输入用户名' }]}
-              >
-                <Input
-                  prefix={<UserOutlined />}
-                  placeholder="用户名"
-                  size="large"
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="password"
-                rules={[{ required: true, message: '请输入密码' }]}
-              >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="密码"
-                  size="large"
-                />
-              </Form.Item>
-
-              <Form.Item>
-                <Space style={{ width: '100%' }}>
-                  <Form.Item
-                    name="captchaCode"
-                    noStyle
-                    rules={[{ required: true, message: '请输入验证码' }]}
-                  >
-                    <Input placeholder="验证码" size="large" style={{ width: '200px' }} />
-                  </Form.Item>
-                  {captcha && (
-                    <img
-                      src={captcha.imageBase64}
-                      alt="验证码"
-                      onClick={fetchCaptcha}
-                      style={{ height: '40px', cursor: 'pointer', border: '1px solid #d9d9d9', borderRadius: '2px' }}
-                    />
-                  )}
-                </Space>
-              </Form.Item>
-
-              <Form.Item>
-                <Button type="primary" htmlType="submit" loading={loading} block size="large">
-                  登录
-                </Button>
-              </Form.Item>
-            </Form>
-          </Tabs.TabPane>
-
-          <Tabs.TabPane tab="手机号登录" key="phone">
-            <Form
-              form={phoneForm}
-              name="phone_login"
-              onFinish={handlePhoneLogin}
-              autoComplete="off"
-            >
-              <Form.Item
-                name="phone"
-                rules={[
-                  { required: true, message: '请输入手机号' },
-                  { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' }
-                ]}
-              >
-                <Input
-                  prefix={<MobileOutlined />}
-                  placeholder="手机号"
-                  size="large"
-                />
-              </Form.Item>
-
-              <Form.Item>
-                <Space style={{ width: '100%' }}>
-                  <Form.Item
-                    name="smsCode"
-                    noStyle
-                    rules={[{ required: true, message: '请输入验证码' }]}
-                  >
-                    <Input placeholder="短信验证码" size="large" style={{ width: '200px' }} />
-                  </Form.Item>
-                  <Button
-                    size="large"
-                    onClick={handleSendSmsCode}
-                    loading={smsLoading}
-                    disabled={countdown > 0}
-                  >
-                    {countdown > 0 ? `${countdown}秒后重试` : '发送验证码'}
-                  </Button>
-                </Space>
-              </Form.Item>
-
-              <Form.Item>
-                <Button type="primary" htmlType="submit" loading={loading} block size="large">
-                  登录
-                </Button>
-              </Form.Item>
-            </Form>
-          </Tabs.TabPane>
-
-          <Tabs.TabPane tab="扫码登录" key="qrcode">
-            <QrCodeLogin />
-          </Tabs.TabPane>
-        </Tabs>
+        <Tabs
+          activeKey={activeTab}
+          onChange={(key) => setActiveTab(key as 'username' | 'phone' | 'qrcode')}
+          centered
+          items={tabItems}
+        />
 
         <Divider>第三方登录</Divider>
         <Space size="large" style={{ width: '100%', justifyContent: 'center' }}>

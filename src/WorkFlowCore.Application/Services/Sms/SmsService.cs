@@ -1,12 +1,13 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Volo.Abp.DependencyInjection;
 
 namespace WorkFlowCore.Application.Services.Sms;
 
 /// <summary>
 /// 短信服务(统一入口)
 /// </summary>
-public class SmsService
+public class SmsService : ITransientDependency
 {
     private readonly IEnumerable<ISmsProvider> _providers;
     private readonly IConfiguration _configuration;

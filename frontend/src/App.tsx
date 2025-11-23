@@ -15,12 +15,13 @@ import './App.css';
 function App() {
   return (
     <BrowserRouter>
-      <AuthGuard>
-        <Routes>
-          {/* 登录相关路由（无布局） */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/auth/bind" element={<ThirdPartyBind />} />
-          
+      <Routes>
+        {/* 登录相关路由（无布局） */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth/bind" element={<ThirdPartyBind />} />
+
+        {/* 受保护路由 */}
+        <Route element={<AuthGuard />}>
           {/* 带布局的路由（受保护） */}
           <Route path="/" element={<Layout />}>
             <Route index element={<ProcessDefinitionList />} />
@@ -30,15 +31,15 @@ function App() {
             <Route path="system/user" element={<UserManagement />} />
             <Route path="system/role" element={<RoleManagement />} />
           </Route>
-          
+
           {/* 全屏流程设计器（无布局，受保护） */}
           <Route path="designer" element={<ProcessDesigner mode="create" />} />
           <Route path="designer/:id" element={<ProcessDesigner mode="edit" />} />
-          
-          {/* 404重定向 */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </AuthGuard>
+        </Route>
+
+        {/* 404重定向 */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }
