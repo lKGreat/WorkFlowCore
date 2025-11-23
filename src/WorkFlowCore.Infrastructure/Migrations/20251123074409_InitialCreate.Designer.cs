@@ -12,8 +12,8 @@ using WorkFlowCore.Infrastructure.Data;
 namespace WorkFlowCore.Infrastructure.Migrations
 {
     [DbContext(typeof(WorkFlowDbContext))]
-    [Migration("20251123072202_AddOpenIddictTables")]
-    partial class AddOpenIddictTables
+    [Migration("20251123074409_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

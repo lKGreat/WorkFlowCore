@@ -6,195 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WorkFlowCore.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddAuthSystemTables : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "SortOrder",
-                table: "Departments",
-                newName: "OrderNum");
-
-            migrationBuilder.RenameColumn(
-                name: "Name",
-                table: "Departments",
-                newName: "Status");
-
-            migrationBuilder.RenameColumn(
-                name: "ManagerId",
-                table: "Departments",
-                newName: "Phone");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "ManagerId",
-                table: "Users",
-                type: "INTEGER",
-                nullable: true,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<long>(
-                name: "DepartmentId",
-                table: "Users",
-                type: "INTEGER",
-                nullable: true,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "Users",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "Tenants",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "ProcessInstanceId",
-                table: "TaskInstances",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "AssigneeId",
-                table: "TaskInstances",
-                type: "INTEGER",
-                nullable: true,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "TaskInstances",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "Roles",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "ProcessDefinitionId",
-                table: "ProcessInstances",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "InitiatorId",
-                table: "ProcessInstances",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "ProcessInstances",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "ProcessDefinitions",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "FileStorageProviders",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER")
-                .OldAnnotation("Sqlite:Autoincrement", true);
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "FileChunks",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER")
-                .OldAnnotation("Sqlite:Autoincrement", true);
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "FileAttachments",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER")
-                .OldAnnotation("Sqlite:Autoincrement", true);
-
-            migrationBuilder.AlterColumn<long>(
-                name: "ParentId",
-                table: "Departments",
-                type: "INTEGER",
-                nullable: true,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "Departments",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(Guid),
-                oldType: "TEXT");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Ancestors",
-                table: "Departments",
-                type: "TEXT",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "DeptName",
-                table: "Departments",
-                type: "TEXT",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Email",
-                table: "Departments",
-                type: "TEXT",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "Leader",
-                table: "Departments",
-                type: "TEXT",
-                nullable: true);
-
             migrationBuilder.CreateTable(
                 name: "AbpAuditLogExcelFiles",
                 columns: table => new
@@ -499,41 +315,24 @@ namespace WorkFlowCore.Infrastructure.Migrations
                     table.PrimaryKey("PK_AbpUserDelegations", x => x.Id);
                 });
 
+            // 防止开发环境中存在旧版本遗留的 Departments 表，先删除再创建
+            migrationBuilder.Sql("DROP TABLE IF EXISTS \"Departments\";");
+
             migrationBuilder.CreateTable(
-                name: "AbpUsers",
+                name: "Departments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    DeptName = table.Column<string>(type: "TEXT", nullable: false),
+                    Code = table.Column<string>(type: "TEXT", nullable: true),
+                    ParentId = table.Column<long>(type: "INTEGER", nullable: true),
+                    Ancestors = table.Column<string>(type: "TEXT", nullable: false),
+                    OrderNum = table.Column<int>(type: "INTEGER", nullable: false),
+                    Leader = table.Column<string>(type: "TEXT", nullable: true),
+                    Phone = table.Column<string>(type: "TEXT", nullable: true),
+                    Email = table.Column<string>(type: "TEXT", nullable: true),
+                    Status = table.Column<string>(type: "TEXT", nullable: false),
                     TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 64, nullable: true),
-                    Surname = table.Column<string>(type: "TEXT", maxLength: 64, nullable: true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    NormalizedEmail = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    EmailConfirmed = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    SecurityStamp = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    IsExternal = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    PhoneNumber = table.Column<string>(type: "TEXT", maxLength: 16, nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    AccessFailedCount = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 0),
-                    ShouldChangePasswordOnNextLogin = table.Column<bool>(type: "INTEGER", nullable: false),
-                    EntityVersion = table.Column<int>(type: "INTEGER", nullable: false),
-                    LastPasswordChangeTime = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
-                    Discriminator = table.Column<string>(type: "TEXT", maxLength: 13, nullable: false),
-                    NickName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    Avatar = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    DepartmentId = table.Column<long>(type: "INTEGER", nullable: true),
-                    ManagerId = table.Column<long>(type: "INTEGER", nullable: true),
-                    LoginFailCount = table.Column<int>(type: "INTEGER", nullable: true),
-                    LastLoginTime = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LastLoginIp = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    Status = table.Column<string>(type: "TEXT", maxLength: 10, nullable: true),
                     ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
                     ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
                     CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -546,12 +345,7 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AbpUsers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AbpUsers_Departments_DepartmentId",
-                        column: x => x.DepartmentId,
-                        principalTable: "Departments",
-                        principalColumn: "Id");
+                    table.PrimaryKey("PK_Departments", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -576,6 +370,32 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DictTypes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FileStorageProviders",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    ProviderName = table.Column<string>(type: "TEXT", nullable: false),
+                    ProviderType = table.Column<int>(type: "INTEGER", nullable: false),
+                    Configuration = table.Column<string>(type: "TEXT", maxLength: 4000, nullable: false),
+                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Priority = table.Column<int>(type: "INTEGER", nullable: false),
+                    TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeleterId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FileStorageProviders", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -611,6 +431,69 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OpenIddictApplications",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ApplicationType = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    ClientId = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    ClientSecret = table.Column<string>(type: "TEXT", nullable: true),
+                    ClientType = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    ConsentType = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    DisplayName = table.Column<string>(type: "TEXT", nullable: true),
+                    DisplayNames = table.Column<string>(type: "TEXT", nullable: true),
+                    JsonWebKeySet = table.Column<string>(type: "TEXT", nullable: true),
+                    Permissions = table.Column<string>(type: "TEXT", nullable: true),
+                    PostLogoutRedirectUris = table.Column<string>(type: "TEXT", nullable: true),
+                    Properties = table.Column<string>(type: "TEXT", nullable: true),
+                    RedirectUris = table.Column<string>(type: "TEXT", nullable: true),
+                    Requirements = table.Column<string>(type: "TEXT", nullable: true),
+                    Settings = table.Column<string>(type: "TEXT", nullable: true),
+                    ClientUri = table.Column<string>(type: "TEXT", nullable: true),
+                    LogoUri = table.Column<string>(type: "TEXT", nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeleterId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OpenIddictApplications", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OpenIddictScopes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    Descriptions = table.Column<string>(type: "TEXT", nullable: true),
+                    DisplayName = table.Column<string>(type: "TEXT", nullable: true),
+                    DisplayNames = table.Column<string>(type: "TEXT", nullable: true),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
+                    Properties = table.Column<string>(type: "TEXT", nullable: true),
+                    Resources = table.Column<string>(type: "TEXT", nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeleterId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OpenIddictScopes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OperationLogs",
                 columns: table => new
                 {
@@ -641,6 +524,84 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProcessDefinitions",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Key = table.Column<string>(type: "TEXT", nullable: false),
+                    Version = table.Column<int>(type: "INTEGER", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    Content = table.Column<string>(type: "TEXT", nullable: false),
+                    ContentFormat = table.Column<string>(type: "TEXT", nullable: false),
+                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeleterId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProcessDefinitions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProcessInstances",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    ProcessDefinitionId = table.Column<long>(type: "INTEGER", nullable: false),
+                    BusinessKey = table.Column<string>(type: "TEXT", nullable: true),
+                    Title = table.Column<string>(type: "TEXT", nullable: false),
+                    InitiatorId = table.Column<long>(type: "INTEGER", nullable: false),
+                    Status = table.Column<string>(type: "TEXT", nullable: false),
+                    Variables = table.Column<string>(type: "TEXT", nullable: true),
+                    StartTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProcessInstances", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Roles",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Code = table.Column<string>(type: "TEXT", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeleterId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Roles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SystemConfigs",
                 columns: table => new
                 {
@@ -663,6 +624,92 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SystemConfigs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TaskInstances",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    ProcessInstanceId = table.Column<long>(type: "INTEGER", nullable: false),
+                    NodeId = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    TaskType = table.Column<string>(type: "TEXT", nullable: false),
+                    AssigneeId = table.Column<long>(type: "INTEGER", nullable: true),
+                    CandidateUsers = table.Column<string>(type: "TEXT", nullable: true),
+                    CandidateGroups = table.Column<string>(type: "TEXT", nullable: true),
+                    Status = table.Column<string>(type: "TEXT", nullable: false),
+                    Priority = table.Column<int>(type: "INTEGER", nullable: false),
+                    DueDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    CompleteTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    Variables = table.Column<string>(type: "TEXT", nullable: true),
+                    Comment = table.Column<string>(type: "TEXT", nullable: true),
+                    TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TaskInstances", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Tenants",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Code = table.Column<string>(type: "TEXT", nullable: false),
+                    ContactPerson = table.Column<string>(type: "TEXT", nullable: true),
+                    ContactPhone = table.Column<string>(type: "TEXT", nullable: true),
+                    ContactEmail = table.Column<string>(type: "TEXT", nullable: true),
+                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeleterId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tenants", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    UserName = table.Column<string>(type: "TEXT", nullable: false),
+                    RealName = table.Column<string>(type: "TEXT", nullable: false),
+                    Email = table.Column<string>(type: "TEXT", nullable: true),
+                    Phone = table.Column<string>(type: "TEXT", nullable: true),
+                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
+                    DepartmentId = table.Column<long>(type: "INTEGER", nullable: true),
+                    ManagerId = table.Column<long>(type: "INTEGER", nullable: true),
+                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeleterId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -759,6 +806,204 @@ namespace WorkFlowCore.Infrastructure.Migrations
                         name: "FK_AbpRoleClaims_AbpRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AbpRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AbpUsers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 64, nullable: true),
+                    Surname = table.Column<string>(type: "TEXT", maxLength: 64, nullable: true),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    NormalizedEmail = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    EmailConfirmed = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    SecurityStamp = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    IsExternal = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    PhoneNumber = table.Column<string>(type: "TEXT", maxLength: 16, nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    AccessFailedCount = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 0),
+                    ShouldChangePasswordOnNextLogin = table.Column<bool>(type: "INTEGER", nullable: false),
+                    EntityVersion = table.Column<int>(type: "INTEGER", nullable: false),
+                    LastPasswordChangeTime = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    Discriminator = table.Column<string>(type: "TEXT", maxLength: 13, nullable: false),
+                    NickName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    Avatar = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    DepartmentId = table.Column<long>(type: "INTEGER", nullable: true),
+                    ManagerId = table.Column<long>(type: "INTEGER", nullable: true),
+                    LoginFailCount = table.Column<int>(type: "INTEGER", nullable: true),
+                    LastLoginTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastLoginIp = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    Status = table.Column<string>(type: "TEXT", maxLength: 10, nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeleterId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AbpUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AbpUsers_Departments_DepartmentId",
+                        column: x => x.DepartmentId,
+                        principalTable: "Departments",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DictDatas",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    DictTypeId = table.Column<long>(type: "INTEGER", nullable: false),
+                    DictLabel = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    DictValue = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    DictSort = table.Column<int>(type: "INTEGER", nullable: false),
+                    Status = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    CssClass = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    ListClass = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    IsDefault = table.Column<bool>(type: "INTEGER", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeleterId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DictDatas", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DictDatas_DictTypes_DictTypeId",
+                        column: x => x.DictTypeId,
+                        principalTable: "DictTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FileAttachments",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    FileName = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    OriginalFileName = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    FileSize = table.Column<long>(type: "INTEGER", nullable: false),
+                    ContentType = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    FileExtension = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    StorageProviderId = table.Column<long>(type: "INTEGER", nullable: false),
+                    StoragePath = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: false),
+                    Md5Hash = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
+                    BusinessType = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    BusinessId = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    UploadStatus = table.Column<int>(type: "INTEGER", nullable: false),
+                    TotalChunks = table.Column<int>(type: "INTEGER", nullable: false),
+                    UploadedChunks = table.Column<int>(type: "INTEGER", nullable: false),
+                    AccessToken = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    TokenExpireAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    DeleterId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    DeletionTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FileAttachments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FileAttachments_FileStorageProviders_StorageProviderId",
+                        column: x => x.StorageProviderId,
+                        principalTable: "FileStorageProviders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RoleMenus",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    RoleId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    MenuId = table.Column<long>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RoleMenus", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RoleMenus_Menus_MenuId",
+                        column: x => x.MenuId,
+                        principalTable: "Menus",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OpenIddictAuthorizations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ApplicationId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    Properties = table.Column<string>(type: "TEXT", nullable: true),
+                    Scopes = table.Column<string>(type: "TEXT", nullable: true),
+                    Status = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    Subject = table.Column<string>(type: "TEXT", maxLength: 400, nullable: true),
+                    Type = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OpenIddictAuthorizations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OpenIddictAuthorizations_OpenIddictApplications_ApplicationId",
+                        column: x => x.ApplicationId,
+                        principalTable: "OpenIddictApplications",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AbpEntityPropertyChanges",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    EntityChangeId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    NewValue = table.Column<string>(type: "TEXT", maxLength: 512, nullable: true),
+                    OriginalValue = table.Column<string>(type: "TEXT", maxLength: 512, nullable: true),
+                    PropertyName = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false),
+                    PropertyTypeFullName = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AbpEntityPropertyChanges", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AbpEntityPropertyChanges_AbpEntityChanges_EntityChangeId",
+                        column: x => x.EntityChangeId,
+                        principalTable: "AbpEntityChanges",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -907,18 +1152,16 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DictDatas",
+                name: "FileChunks",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
-                    DictTypeId = table.Column<long>(type: "INTEGER", nullable: false),
-                    DictLabel = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    DictValue = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    DictSort = table.Column<int>(type: "INTEGER", nullable: false),
-                    Status = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
-                    CssClass = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    ListClass = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    IsDefault = table.Column<bool>(type: "INTEGER", nullable: false),
+                    AttachmentId = table.Column<long>(type: "INTEGER", nullable: false),
+                    ChunkIndex = table.Column<int>(type: "INTEGER", nullable: false),
+                    ChunkSize = table.Column<long>(type: "INTEGER", nullable: false),
+                    ChunkHash = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
+                    UploadStatus = table.Column<int>(type: "INTEGER", nullable: false),
+                    StoragePath = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: false),
                     ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
                     ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
                     CreationTime = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -931,55 +1174,47 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DictDatas", x => x.Id);
+                    table.PrimaryKey("PK_FileChunks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DictDatas_DictTypes_DictTypeId",
-                        column: x => x.DictTypeId,
-                        principalTable: "DictTypes",
+                        name: "FK_FileChunks_FileAttachments_AttachmentId",
+                        column: x => x.AttachmentId,
+                        principalTable: "FileAttachments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "RoleMenus",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false),
-                    RoleId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    MenuId = table.Column<long>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RoleMenus", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_RoleMenus_Menus_MenuId",
-                        column: x => x.MenuId,
-                        principalTable: "Menus",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AbpEntityPropertyChanges",
+                name: "OpenIddictTokens",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    TenantId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    EntityChangeId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    NewValue = table.Column<string>(type: "TEXT", maxLength: 512, nullable: true),
-                    OriginalValue = table.Column<string>(type: "TEXT", maxLength: 512, nullable: true),
-                    PropertyName = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false),
-                    PropertyTypeFullName = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false)
+                    ApplicationId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    AuthorizationId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    ExpirationDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    Payload = table.Column<string>(type: "TEXT", nullable: true),
+                    Properties = table.Column<string>(type: "TEXT", nullable: true),
+                    RedemptionDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    ReferenceId = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    Status = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    Subject = table.Column<string>(type: "TEXT", maxLength: 400, nullable: true),
+                    Type = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    ExtraProperties = table.Column<string>(type: "TEXT", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AbpEntityPropertyChanges", x => x.Id);
+                    table.PrimaryKey("PK_OpenIddictTokens", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AbpEntityPropertyChanges_AbpEntityChanges_EntityChangeId",
-                        column: x => x.EntityChangeId,
-                        principalTable: "AbpEntityChanges",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_OpenIddictTokens_OpenIddictApplications_ApplicationId",
+                        column: x => x.ApplicationId,
+                        principalTable: "OpenIddictApplications",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_OpenIddictTokens_OpenIddictAuthorizations_AuthorizationId",
+                        column: x => x.AuthorizationId,
+                        principalTable: "OpenIddictAuthorizations",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -1180,9 +1415,85 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_FileAttachments_AccessToken",
+                table: "FileAttachments",
+                column: "AccessToken");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileAttachments_BusinessType_BusinessId",
+                table: "FileAttachments",
+                columns: new[] { "BusinessType", "BusinessId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileAttachments_Md5Hash",
+                table: "FileAttachments",
+                column: "Md5Hash");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileAttachments_StorageProviderId",
+                table: "FileAttachments",
+                column: "StorageProviderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileAttachments_TenantId_UploadStatus",
+                table: "FileAttachments",
+                columns: new[] { "TenantId", "UploadStatus" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileChunks_AttachmentId_ChunkIndex",
+                table: "FileChunks",
+                columns: new[] { "AttachmentId", "ChunkIndex" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileChunks_AttachmentId_UploadStatus",
+                table: "FileChunks",
+                columns: new[] { "AttachmentId", "UploadStatus" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileStorageProviders_ProviderType",
+                table: "FileStorageProviders",
+                column: "ProviderType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileStorageProviders_TenantId_IsEnabled",
+                table: "FileStorageProviders",
+                columns: new[] { "TenantId", "IsEnabled" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Menus_ParentId_OrderNum",
                 table: "Menus",
                 columns: new[] { "ParentId", "OrderNum" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OpenIddictApplications_ClientId",
+                table: "OpenIddictApplications",
+                column: "ClientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OpenIddictAuthorizations_ApplicationId_Status_Subject_Type",
+                table: "OpenIddictAuthorizations",
+                columns: new[] { "ApplicationId", "Status", "Subject", "Type" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OpenIddictScopes_Name",
+                table: "OpenIddictScopes",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OpenIddictTokens_ApplicationId_Status_Subject_Type",
+                table: "OpenIddictTokens",
+                columns: new[] { "ApplicationId", "Status", "Subject", "Type" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OpenIddictTokens_AuthorizationId",
+                table: "OpenIddictTokens",
+                column: "AuthorizationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OpenIddictTokens_ReferenceId",
+                table: "OpenIddictTokens",
+                column: "ReferenceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OperationLogs_CreationTime",
@@ -1193,6 +1504,11 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 name: "IX_OperationLogs_Status",
                 table: "OperationLogs",
                 column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProcessDefinitions_Key_Version",
+                table: "ProcessDefinitions",
+                columns: new[] { "Key", "Version" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleMenus_MenuId",
@@ -1210,6 +1526,17 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 table: "SystemConfigs",
                 column: "ConfigKey",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tenants_Code",
+                table: "Tenants",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_UserName",
+                table: "Users",
+                column: "UserName");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserThirdPartyAccounts_Provider_OpenId",
@@ -1293,13 +1620,40 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 name: "DictDatas");
 
             migrationBuilder.DropTable(
+                name: "FileChunks");
+
+            migrationBuilder.DropTable(
+                name: "OpenIddictScopes");
+
+            migrationBuilder.DropTable(
+                name: "OpenIddictTokens");
+
+            migrationBuilder.DropTable(
                 name: "OperationLogs");
+
+            migrationBuilder.DropTable(
+                name: "ProcessDefinitions");
+
+            migrationBuilder.DropTable(
+                name: "ProcessInstances");
 
             migrationBuilder.DropTable(
                 name: "RoleMenus");
 
             migrationBuilder.DropTable(
+                name: "Roles");
+
+            migrationBuilder.DropTable(
                 name: "SystemConfigs");
+
+            migrationBuilder.DropTable(
+                name: "TaskInstances");
+
+            migrationBuilder.DropTable(
+                name: "Tenants");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "UserThirdPartyAccounts");
@@ -1317,6 +1671,12 @@ namespace WorkFlowCore.Infrastructure.Migrations
                 name: "DictTypes");
 
             migrationBuilder.DropTable(
+                name: "FileAttachments");
+
+            migrationBuilder.DropTable(
+                name: "OpenIddictAuthorizations");
+
+            migrationBuilder.DropTable(
                 name: "Menus");
 
             migrationBuilder.DropTable(
@@ -1325,179 +1685,14 @@ namespace WorkFlowCore.Infrastructure.Migrations
             migrationBuilder.DropTable(
                 name: "AbpAuditLogs");
 
-            migrationBuilder.DropColumn(
-                name: "Ancestors",
-                table: "Departments");
+            migrationBuilder.DropTable(
+                name: "FileStorageProviders");
 
-            migrationBuilder.DropColumn(
-                name: "DeptName",
-                table: "Departments");
+            migrationBuilder.DropTable(
+                name: "OpenIddictApplications");
 
-            migrationBuilder.DropColumn(
-                name: "Email",
-                table: "Departments");
-
-            migrationBuilder.DropColumn(
-                name: "Leader",
-                table: "Departments");
-
-            migrationBuilder.RenameColumn(
-                name: "Status",
-                table: "Departments",
-                newName: "Name");
-
-            migrationBuilder.RenameColumn(
-                name: "Phone",
-                table: "Departments",
-                newName: "ManagerId");
-
-            migrationBuilder.RenameColumn(
-                name: "OrderNum",
-                table: "Departments",
-                newName: "SortOrder");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "ManagerId",
-                table: "Users",
-                type: "TEXT",
-                nullable: true,
-                oldClrType: typeof(long),
-                oldType: "INTEGER",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "DepartmentId",
-                table: "Users",
-                type: "TEXT",
-                nullable: true,
-                oldClrType: typeof(long),
-                oldType: "INTEGER",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "Id",
-                table: "Users",
-                type: "TEXT",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "Id",
-                table: "Tenants",
-                type: "TEXT",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "ProcessInstanceId",
-                table: "TaskInstances",
-                type: "TEXT",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "AssigneeId",
-                table: "TaskInstances",
-                type: "TEXT",
-                nullable: true,
-                oldClrType: typeof(long),
-                oldType: "INTEGER",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "Id",
-                table: "TaskInstances",
-                type: "TEXT",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "Id",
-                table: "Roles",
-                type: "TEXT",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "ProcessDefinitionId",
-                table: "ProcessInstances",
-                type: "TEXT",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "InitiatorId",
-                table: "ProcessInstances",
-                type: "TEXT",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "Id",
-                table: "ProcessInstances",
-                type: "TEXT",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "Id",
-                table: "ProcessDefinitions",
-                type: "TEXT",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "FileStorageProviders",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER")
-                .Annotation("Sqlite:Autoincrement", true);
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "FileChunks",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER")
-                .Annotation("Sqlite:Autoincrement", true);
-
-            migrationBuilder.AlterColumn<long>(
-                name: "Id",
-                table: "FileAttachments",
-                type: "INTEGER",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER")
-                .Annotation("Sqlite:Autoincrement", true);
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "ParentId",
-                table: "Departments",
-                type: "TEXT",
-                nullable: true,
-                oldClrType: typeof(long),
-                oldType: "INTEGER",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "Id",
-                table: "Departments",
-                type: "TEXT",
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
+            migrationBuilder.DropTable(
+                name: "Departments");
         }
     }
 }
