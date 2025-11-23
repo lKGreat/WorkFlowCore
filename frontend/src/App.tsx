@@ -8,6 +8,8 @@ import { FileUploadDemo } from './pages/FileUploadDemo';
 import LoginPage from './pages/Auth/Login';
 import ThirdPartyBind from './pages/Auth/ThirdPartyBind';
 import AuthGuard from './components/AuthGuard';
+import UserManagement from './pages/System/User';
+import RoleManagement from './pages/System/Role';
 import './App.css';
 
 function App() {
@@ -25,6 +27,8 @@ function App() {
             <Route path="instances" element={<ProcessInstanceList />} />
             <Route path="versions/:key" element={<VersionHistory />} />
             <Route path="file-upload" element={<FileUploadDemo />} />
+            <Route path="system/user" element={<UserManagement />} />
+            <Route path="system/role" element={<RoleManagement />} />
           </Route>
           
           {/* 全屏流程设计器（无布局，受保护） */}

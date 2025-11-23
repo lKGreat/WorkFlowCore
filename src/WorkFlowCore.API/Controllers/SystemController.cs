@@ -104,5 +104,94 @@ public class SystemController : BaseController
         await Task.CompletedTask;
         return ApiResponse<object?>.Ok(null, "退出成功").ToActionResult();
     }
+
+    /// <summary>
+    /// 获取个人资料
+    /// </summary>
+    [HttpGet("system/user/profile")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<UserInfoDto>>> GetProfile()
+    {
+        var userId = CurrentUser.Id!.Value;
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user == null)
+        {
+            return ApiResponse<UserInfoDto>.Fail("用户不存在").ToActionResult();
+        }
+
+        return ApiResponse<UserInfoDto>.Ok(new UserInfoDto
+        {
+            UserId = user.Id.ToString(),
+            UserName = user.UserName ?? string.Empty,
+            NickName = user.NickName ?? string.Empty,
+            Avatar = user.Avatar,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            DepartmentId = user.DepartmentId,
+            Sex = "0",
+            Status = user.Status
+        }).ToActionResult();
+    }
+
+    /// <summary>
+    /// 更新个人资料
+    /// </summary>
+    [HttpPut("system/user/profile")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<object?>>> UpdateProfile([FromBody] UpdateProfileInput input)
+    {
+        var userId = CurrentUser.Id!.Value;
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user == null)
+        {
+            return ApiResponse<object?>.Fail("用户不存在").ToActionResult();
+        }
+
+        user.NickName = input.NickName;
+        await _userManager.SetEmailAsync(user, input.Email);
+        await _userManager.SetPhoneNumberAsync(user, input.PhoneNumber);
+
+        await _userManager.UpdateAsync(user);
+        return ApiResponse<object?>.Ok(null, "更新成功").ToActionResult();
+    }
+
+    /// <summary>
+    /// 修改密码
+    /// </summary>
+    [HttpPut("system/user/profile/updatePwd")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<object?>>> UpdatePassword([FromBody] UpdatePasswordInput input)
+    {
+        var userId = CurrentUser.Id!.Value;
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user == null)
+        {
+            return ApiResponse<object?>.Fail("用户不存在").ToActionResult();
+        }
+
+        var result = await _userManager.ChangePasswordAsync(user, input.OldPassword, input.NewPassword);
+        if (!result.Succeeded)
+        {
+            return ApiResponse<object?>.Fail("密码修改失败: " + string.Join(", ", result.Errors.Select(e => e.Description))).ToActionResult();
+        }
+
+        return ApiResponse<object?>.Ok(null, "密码修改成功").ToActionResult();
+    }
+}
+
+public class UpdateProfileInput
+{
+    public string? NickName { get; set; }
+    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
+}
+
+public class UpdatePasswordInput
+{
+    public string OldPassword { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
 }
 

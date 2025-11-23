@@ -13,26 +13,47 @@ export const Layout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { userInfo, logout: logoutStore } = useAuthStore();
-  const { clearRoutes } = useRouterStore();
+  const { routes, clearRoutes } = useRouterStore();
 
-  // 默认菜单(暂时使用静态菜单,后续可以使用动态路由)
-  const menuItems = [
-    {
-      key: '/',
-      icon: <FileTextOutlined />,
-      label: '流程定义',
-    },
-    {
-      key: '/instances',
-      icon: <ApartmentOutlined />,
-      label: '流程实例',
-    },
-    {
-      key: '/file-upload',
-      icon: <CloudUploadOutlined />,
-      label: '文件上传',
-    },
-  ];
+  // 动态菜单（从路由配置生成）
+  const buildMenuItems = (routerConfigs: any[]): any[] => {
+    return routerConfigs
+      .filter(r => !r.hidden && r.meta?.title)
+      .map(route => {
+        const item: any = {
+          key: route.path,
+          label: route.meta?.title,
+          icon: getMenuIcon(route.meta?.icon)
+        };
+
+        if (route.children && route.children.length > 0) {
+          item.children = buildMenuItems(route.children);
+        }
+
+        return item;
+      });
+  };
+
+  const getMenuIcon = (iconName?: string) => {
+    const iconMap: any = {
+      'process': <FileTextOutlined />,
+      'instance': <ApartmentOutlined />,
+      'upload': <CloudUploadOutlined />,
+      'user': <UserOutlined />,
+      'setting': <SettingOutlined />
+    };
+    return iconMap[iconName || ''] || <FileTextOutlined />;
+  };
+
+  // 使用动态路由或默认菜单
+  const menuItems = routes && routes.length > 0 
+    ? buildMenuItems(routes)
+    : [
+        { key: '/', icon: <FileTextOutlined />, label: '流程定义' },
+        { key: '/instances', icon: <ApartmentOutlined />, label: '流程实例' },
+        { key: '/file-upload', icon: <CloudUploadOutlined />, label: '文件上传' },
+        { key: '/system/user', icon: <UserOutlined />, label: '用户管理' },
+      ];
 
   const handleLogout = async () => {
     try {

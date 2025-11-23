@@ -199,6 +199,21 @@ public class WorkFlowCoreHttpApiModule : AbpModule
         // 注册菜单服务
         services.AddScoped<Application.Services.IMenuService, MenuService>();
 
+        // 注册用户服务
+        services.AddScoped<Application.Services.IAppUserService, AppUserService>();
+
+        // 注册角色服务
+        services.AddScoped<Application.Services.IRoleService, RoleService>();
+
+        // 注册字典服务
+        services.AddScoped<Application.Services.IDictService, DictService>();
+
+        // 注册系统配置服务
+        services.AddScoped<Application.Services.IConfigService, ConfigService>();
+
+        // 注册操作日志服务
+        services.AddScoped<Application.Services.IOperationLogService, OperationLogService>();
+
         // 注册文件存储服务
         services.AddScoped<Application.Services.IFileStorageProviderService, FileStorageProviderService>();
         services.AddScoped<Application.Services.IFileUploadService, FileUploadService>();

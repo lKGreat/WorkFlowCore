@@ -7,3 +7,10 @@ export type ApiResponse<T = unknown> = {
   traceId?: string
   errors?: Record<string, string[]>
 }
+
+export type PagedResponse<T> = {
+  items: T[]
+  totalCount: number
+  pageIndex: number
+  pageSize: number
+}
