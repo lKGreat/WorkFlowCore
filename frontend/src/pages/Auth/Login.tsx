@@ -15,6 +15,29 @@ import { setToken } from '../../utils/auth';
 import QrCodeLogin from './QrCodeLogin';
 import './Login.css';
 
+// #region agent log
+const agentDebugLog = (
+  hypothesisId: string,
+  location: string,
+  message: string,
+  data?: Record<string, unknown>,
+) => {
+  fetch('http://127.0.0.1:7242/ingest/1d9ea195-40d1-47e5-a8cf-0285be79d950', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sessionId: 'debug-session',
+      runId: 'run1',
+      hypothesisId,
+      location,
+      message,
+      data,
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+};
+// #endregion
+
 interface CaptchaInfo {
   uuid: string;
   imageBase64: string;
@@ -36,6 +59,10 @@ const LoginPage: React.FC = () => {
   // 获取图形验证码
   useEffect(() => {
     if (activeTab === 'username') {
+      agentDebugLog('H4', 'LoginPage.useEffect', 'fetchCaptcha triggered', {
+        activeTab,
+        hasCaptcha: Boolean(captcha),
+      });
       fetchCaptcha();
     }
   }, [activeTab]);
@@ -54,9 +81,17 @@ const LoginPage: React.FC = () => {
       const result = await response.json();
       if (result.success) {
         setCaptcha(result.data);
+        agentDebugLog('H5', 'LoginPage.fetchCaptcha', 'captcha fetched', {
+          success: true,
+          hasData: Boolean(result.data),
+        });
       }
     } catch (error) {
       message.error('获取验证码失败');
+      agentDebugLog('H5', 'LoginPage.fetchCaptcha', 'captcha fetch failed', {
+        success: false,
+        error: (error as Error).message,
+      });
     }
   };
 

@@ -6,6 +6,29 @@ import { useRouterStore } from '../stores/routerStore';
 import { getToken } from '../utils/auth';
 import { getInfo, getRouters } from '../services/authService';
 
+// #region agent log
+const agentDebugLog = (
+  hypothesisId: string,
+  location: string,
+  message: string,
+  data?: Record<string, unknown>,
+) => {
+  fetch('http://127.0.0.1:7242/ingest/1d9ea195-40d1-47e5-a8cf-0285be79d950', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sessionId: 'debug-session',
+      runId: 'run1',
+      hypothesisId,
+      location,
+      message,
+      data,
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+};
+// #endregion
+
 interface AuthGuardProps {
   children: React.ReactNode;
 }
@@ -30,6 +53,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 
   const checkAuth = async () => {
     const currentToken = token || getToken();
+    agentDebugLog('H6', 'AuthGuard.checkAuth', 'auth check triggered', {
+      pathname: location.pathname,
+      hasToken: Boolean(currentToken),
+      rolesCount: roles.length,
+    });
 
     // 无Token且不在白名单
     if (!currentToken) {
@@ -57,9 +85,16 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         setRoutes(routers);
 
         setAuthenticated(true);
+        agentDebugLog('H6', 'AuthGuard.checkAuth', 'user info & routes loaded', {
+          roles: userInfo.roles?.length ?? 0,
+          permissions: userInfo.permissions?.length ?? 0,
+        });
       } catch (error) {
         console.error('获取用户信息失败:', error);
         setAuthenticated(false);
+        agentDebugLog('H6', 'AuthGuard.checkAuth', 'failed to load user info', {
+          error: (error as Error).message,
+        });
       } finally {
         setLoading(false);
       }

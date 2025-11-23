@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.IO;
 using System.Text;
+using System.Text.Json;
 using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
@@ -17,6 +19,7 @@ using Volo.Abp.SettingManagement;
 using WorkFlowCore.API.Middleware;
 using WorkFlowCore.Application;
 using WorkFlowCore.Application.Common;
+using WorkFlowCore.Application.Services.Sms;
 using WorkFlowCore.Infrastructure;
 using WorkFlowCore.Infrastructure.Data;
 using WorkFlowCore.Infrastructure.Services;
@@ -267,6 +270,25 @@ public class WorkFlowCoreHttpApiModule : AbpModule
         services.AddScoped<Application.Services.IFileStorageProviderService, FileStorageProviderService>();
         services.AddScoped<Application.Services.IFileUploadService, FileUploadService>();
         services.AddScoped<Application.Services.IFileAccessService, FileAccessService>();
+        services.AddSingleton<SmsService>();
+
+        // #region agent log
+        try
+        {
+            var smsServiceRegistered = services.Any(d => d.ServiceType == typeof(WorkFlowCore.Application.Services.Sms.SmsService));
+            AgentDebugLog("H1", "WorkFlowCoreHttpApiModule.ConfigureCustomServices", "SmsService registration status", new { smsServiceRegistered });
+
+            var smsProviderRegistrations = services.Where(d => d.ServiceType == typeof(WorkFlowCore.Application.Services.Sms.ISmsProvider)).Select(d => d.ImplementationType?.FullName).ToArray();
+            AgentDebugLog("H2", "WorkFlowCoreHttpApiModule.ConfigureCustomServices", "Sms provider registrations", new { count = smsProviderRegistrations.Length, smsProviderRegistrations });
+
+            var smsCodeServiceRegistered = services.Any(d => d.ServiceType == typeof(WorkFlowCore.Application.Services.Auth.ISmsCodeService));
+            AgentDebugLog("H3", "WorkFlowCoreHttpApiModule.ConfigureCustomServices", "SmsCodeService registration status", new { smsCodeServiceRegistered });
+        }
+        catch
+        {
+            // ignored - instrumentation only
+        }
+        // #endregion
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -298,4 +320,34 @@ public class WorkFlowCoreHttpApiModule : AbpModule
 
         // WorkflowCore 在 Program.cs 中启动，避免重复启动
     }
+
+    // #region agent log
+    private const string AgentSessionId = "debug-session";
+    private const string AgentRunId = "run1";
+    private static readonly string AgentLogPath = @"d:\Code\WorkFlowCore\WorkFlowCore\.cursor\debug.log";
+
+    private static void AgentDebugLog(string hypothesisId, string location, string message, object data)
+    {
+        try
+        {
+            var payload = new
+            {
+                sessionId = AgentSessionId,
+                runId = AgentRunId,
+                hypothesisId,
+                location,
+                message,
+                data,
+                timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            };
+
+            var json = JsonSerializer.Serialize(payload);
+            File.AppendAllText(AgentLogPath, json + Environment.NewLine);
+        }
+        catch
+        {
+            // swallow instrumentation exceptions
+        }
+    }
+    // #endregion
 }
