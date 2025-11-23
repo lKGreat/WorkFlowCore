@@ -1,39 +1,19 @@
-using Lazy.Captcha.Core;
 using Microsoft.Extensions.Caching.Distributed;
-using System.Text.Json;
 using Volo.Abp.Caching;
-using Volo.Abp.DependencyInjection;
 using WorkFlowCore.Application.DTOs.Auth;
+using WorkFlowCore.Domain.Common;
 
 namespace WorkFlowCore.Application.Services.Auth;
-
-/// <summary>
-/// 图形验证码服务接口
-/// </summary>
-public interface ICaptchaService : ITransientDependency
-{
-    /// <summary>
-    /// 生成验证码
-    /// </summary>
-    Task<CaptchaInfo> GenerateAsync();
-
-    /// <summary>
-    /// 验证验证码
-    /// </summary>
-    Task<bool> ValidateAsync(string uuid, string code);
-}
 
 /// <summary>
 /// 图形验证码服务实现
 /// </summary>
 public class CaptchaService : ICaptchaService
 {
-    private readonly ICaptcha _captcha;
-    private readonly IDistributedCache _cache;
+    private readonly IDistributedCache<CaptchaCacheItem> _cache;
 
-    public CaptchaService(ICaptcha captcha, IDistributedCache cache)
+    public CaptchaService(IDistributedCache<CaptchaCacheItem> cache)
     {
-        _captcha = captcha;
         _cache = cache;
     }
 
@@ -43,26 +23,25 @@ public class CaptchaService : ICaptchaService
     public async Task<CaptchaInfo> GenerateAsync()
     {
         var uuid = Guid.NewGuid().ToString();
-        var info = _captcha.Generate(uuid, 120); // 120秒有效期
+        var code = GenerateRandomCode(4);
 
-        // 缓存验证码（2分钟）
-        var cacheItem = new CaptchaCacheItem { Code = info.Code };
-        var cacheValue = JsonSerializer.Serialize(cacheItem);
-        
-        await _cache.SetStringAsync(
-            $"captcha:{uuid}",
-            cacheValue,
+        // 缓存2分钟
+        await _cache.SetAsync(
+            uuid,
+            new CaptchaCacheItem { Code = code },
             new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(120)
-            }
-        );
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2)
+            });
+
+        // 生成Base64图片
+        var imageBase64 = GenerateImage(code);
 
         return new CaptchaInfo
         {
             Uuid = uuid,
-            ImageBase64 = info.Base64,
-            ExpireTime = DateTime.Now.AddSeconds(120)
+            ImageBase64 = imageBase64,
+            ExpireTime = DateTime.Now.AddMinutes(2)
         };
     }
 
@@ -71,24 +50,39 @@ public class CaptchaService : ICaptchaService
     /// </summary>
     public async Task<bool> ValidateAsync(string uuid, string code)
     {
-        var cacheKey = $"captcha:{uuid}";
-        var cacheValue = await _cache.GetStringAsync(cacheKey);
-        
-        if (string.IsNullOrEmpty(cacheValue))
-        {
-            return false;
-        }
-
-        // 验证后删除缓存（防止重复使用）
-        await _cache.RemoveAsync(cacheKey);
-
-        var cached = JsonSerializer.Deserialize<CaptchaCacheItem>(cacheValue);
+        var cached = await _cache.GetAsync(uuid);
         if (cached == null)
         {
             return false;
         }
 
+        // 验证后删除
+        await _cache.RemoveAsync(uuid);
+
         return cached.Code.Equals(code, StringComparison.OrdinalIgnoreCase);
     }
-}
 
+    /// <summary>
+    /// 生成随机验证码
+    /// </summary>
+    private string GenerateRandomCode(int length)
+    {
+        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        var random = new Random();
+        return new string(Enumerable.Range(0, length)
+            .Select(_ => chars[random.Next(chars.Length)])
+            .ToArray());
+    }
+
+    /// <summary>
+    /// 生成验证码图片 (简化版,使用Base64编码)
+    /// TODO: 使用 SkiaSharp 或其他图形库生成真实图片
+    /// </summary>
+    private string GenerateImage(string code)
+    {
+        // 简化实现:直接返回文本形式的Base64
+        // 生产环境应使用图形库生成真实的验证码图片
+        var bytes = System.Text.Encoding.UTF8.GetBytes($"CAPTCHA:{code}");
+        return $"data:text/plain;base64,{Convert.ToBase64String(bytes)}";
+    }
+}

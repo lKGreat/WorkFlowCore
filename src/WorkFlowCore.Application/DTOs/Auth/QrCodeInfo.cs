@@ -1,22 +1,28 @@
 namespace WorkFlowCore.Application.DTOs.Auth;
 
 /// <summary>
-/// 图形验证码信息
+/// 二维码登录信息
 /// </summary>
-public class CaptchaInfo
+public class QrCodeInfo
 {
     /// <summary>
-    /// 唯一标识
+    /// 二维码UUID
     /// </summary>
     public string Uuid { get; set; } = string.Empty;
 
     /// <summary>
-    /// Base64图片
+    /// 状态标识
     /// </summary>
-    public string ImageBase64 { get; set; } = string.Empty;
+    public string State { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 二维码内容
+    /// </summary>
+    public string QrContent { get; set; } = string.Empty;
 
     /// <summary>
     /// 过期时间
     /// </summary>
     public DateTime ExpireTime { get; set; }
 }
+

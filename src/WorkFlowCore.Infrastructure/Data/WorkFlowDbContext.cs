@@ -27,6 +27,12 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
     public DbSet<FileAttachment> FileAttachments { get; set; }
     public DbSet<FileChunk> FileChunks { get; set; }
     public DbSet<UserThirdPartyAccount> UserThirdPartyAccounts { get; set; }
+    public DbSet<Menu> Menus { get; set; }
+    public DbSet<RoleMenu> RoleMenus { get; set; }
+    public DbSet<DictType> DictTypes { get; set; }
+    public DbSet<DictData> DictDatas { get; set; }
+    public DbSet<SystemConfig> SystemConfigs { get; set; }
+    public DbSet<OperationLog> OperationLogs { get; set; }
     
     // ABP Identity tables (required by IIdentityDbContext)
     public DbSet<IdentityUser> Users => Set<IdentityUser>();
@@ -189,6 +195,95 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
                 .WithMany()
                 .HasForeignKey(c => c.AttachmentId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置菜单
+        builder.Entity<Menu>(b =>
+        {
+            b.ToTable("Menus");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.Property(m => m.MenuName).HasMaxLength(100).IsRequired();
+            b.Property(m => m.MenuType).HasMaxLength(10).IsRequired();
+            b.Property(m => m.Path).HasMaxLength(200);
+            b.Property(m => m.Component).HasMaxLength(200);
+            b.Property(m => m.PermissionCode).HasMaxLength(200);
+            b.Property(m => m.Icon).HasMaxLength(100);
+            b.Property(m => m.Status).HasMaxLength(10);
+            b.HasIndex(m => new { m.ParentId, m.OrderNum });
+        });
+
+        // 配置角色菜单关系
+        builder.Entity<RoleMenu>(b =>
+        {
+            b.ToTable("RoleMenus");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.HasIndex(rm => new { rm.RoleId, rm.MenuId }).IsUnique();
+        });
+
+        // 配置字典类型
+        builder.Entity<DictType>(b =>
+        {
+            b.ToTable("DictTypes");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.Property(d => d.DictName).HasMaxLength(100).IsRequired();
+            b.Property(d => d.DictTypeCode).HasMaxLength(100).IsRequired();
+            b.Property(d => d.Status).HasMaxLength(10);
+            b.Property(d => d.Remark).HasMaxLength(500);
+            b.HasIndex(d => d.DictTypeCode).IsUnique();
+        });
+
+        // 配置字典数据
+        builder.Entity<DictData>(b =>
+        {
+            b.ToTable("DictDatas");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.Property(d => d.DictLabel).HasMaxLength(100).IsRequired();
+            b.Property(d => d.DictValue).HasMaxLength(100).IsRequired();
+            b.Property(d => d.Status).HasMaxLength(10);
+            b.Property(d => d.CssClass).HasMaxLength(100);
+            b.Property(d => d.ListClass).HasMaxLength(100);
+            b.HasIndex(d => new { d.DictTypeId, d.DictSort });
+            
+            b.HasOne(d => d.DictType)
+                .WithMany(t => t.DictDatas)
+                .HasForeignKey(d => d.DictTypeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 配置系统配置
+        builder.Entity<SystemConfig>(b =>
+        {
+            b.ToTable("SystemConfigs");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.Property(c => c.ConfigKey).HasMaxLength(100).IsRequired();
+            b.Property(c => c.ConfigValue).HasMaxLength(2000).IsRequired();
+            b.Property(c => c.ConfigName).HasMaxLength(100).IsRequired();
+            b.Property(c => c.ConfigType).HasMaxLength(10);
+            b.Property(c => c.Remark).HasMaxLength(500);
+            b.HasIndex(c => c.ConfigKey).IsUnique();
+        });
+
+        // 配置操作日志
+        builder.Entity<OperationLog>(b =>
+        {
+            b.ToTable("OperationLogs");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.Property(l => l.Title).HasMaxLength(100).IsRequired();
+            b.Property(l => l.BusinessType).HasMaxLength(50).IsRequired();
+            b.Property(l => l.RequestMethod).HasMaxLength(20);
+            b.Property(l => l.RequestUrl).HasMaxLength(500);
+            b.Property(l => l.Status).HasMaxLength(10);
+            b.Property(l => l.OperatorName).HasMaxLength(100);
+            b.Property(l => l.OperatorIp).HasMaxLength(50);
+            b.Property(l => l.OperatorLocation).HasMaxLength(100);
+            b.HasIndex(l => l.CreationTime);
+            b.HasIndex(l => l.Status);
         });
     }
 }

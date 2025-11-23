@@ -1,6 +1,6 @@
-using System;
 using Volo.Abp.Domain.Entities.Auditing;
 using Volo.Abp.MultiTenancy;
+using WorkFlowCore.Domain.Identity;
 
 namespace WorkFlowCore.Domain.Entities;
 
@@ -12,7 +12,7 @@ public class Department : FullAuditedAggregateRoot<long>, IMultiTenant
     /// <summary>
     /// 部门名称
     /// </summary>
-    public string Name { get; set; } = string.Empty;
+    public string DeptName { get; set; } = string.Empty;
 
     /// <summary>
     /// 部门编码
@@ -25,25 +25,50 @@ public class Department : FullAuditedAggregateRoot<long>, IMultiTenant
     public long? ParentId { get; set; }
 
     /// <summary>
-    /// 部门主管ID
+    /// 祖级列表 (如: "0,1,2")
     /// </summary>
-    public long? ManagerId { get; set; }
+    public string Ancestors { get; set; } = "0";
 
     /// <summary>
-    /// 排序号
+    /// 显示顺序
     /// </summary>
-    public int SortOrder { get; set; }
+    public int OrderNum { get; set; }
+
+    /// <summary>
+    /// 负责人
+    /// </summary>
+    public string? Leader { get; set; }
+
+    /// <summary>
+    /// 联系电话
+    /// </summary>
+    public string? Phone { get; set; }
+
+    /// <summary>
+    /// 邮箱
+    /// </summary>
+    public string? Email { get; set; }
+
+    /// <summary>
+    /// 状态 (0=正常, 1=停用)
+    /// </summary>
+    public string Status { get; set; } = "0";
 
     /// <summary>
     /// 租户ID
     /// </summary>
     public Guid? TenantId { get; protected set; }
 
+    /// <summary>
+    /// 部门用户集合
+    /// </summary>
+    public virtual ICollection<AppUser>? Users { get; set; }
+
     protected Department() { }
 
-    public Department(long id, Guid? tenantId, string name) : base(id)
+    public Department(long id, Guid? tenantId, string deptName) : base(id)
     {
         TenantId = tenantId;
-        Name = name;
+        DeptName = deptName;
     }
 }
