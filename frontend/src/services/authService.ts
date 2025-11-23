@@ -1,4 +1,4 @@
-import { httpClient } from '../api/httpClient';
+import { request } from '../api';
 import type { RouterConfig } from '../stores/routerStore';
 
 export interface GetInfoResponse {
@@ -22,22 +22,20 @@ export interface GetInfoResponse {
  * 获取当前用户信息
  */
 export const getInfo = async (): Promise<GetInfoResponse> => {
-  const response = await httpClient.get<GetInfoResponse>('/getInfo');
-  return response.data;
+  return request<GetInfoResponse>({ method: 'GET', url: '/getInfo' });
 };
 
 /**
  * 获取动态路由
  */
 export const getRouters = async (): Promise<RouterConfig[]> => {
-  const response = await httpClient.get<RouterConfig[]>('/getRouters');
-  return response.data;
+  return request<RouterConfig[]>({ method: 'GET', url: '/getRouters' });
 };
 
 /**
  * 退出登录
  */
 export const logout = async (): Promise<void> => {
-  await httpClient.post('/LogOut');
+  await request({ method: 'POST', url: '/LogOut' });
 };
 

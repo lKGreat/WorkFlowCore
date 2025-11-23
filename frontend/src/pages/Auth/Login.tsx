@@ -11,32 +11,10 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import { setToken } from '../../utils/auth';
+import { httpClient } from '../../api';
+import type { ApiResponse } from '../../api/types';
 import QrCodeLogin from './QrCodeLogin';
 import './Login.css';
-
-// #region agent log
-const agentDebugLog = (
-  hypothesisId: string,
-  location: string,
-  message: string,
-  data?: Record<string, unknown>,
-) => {
-  fetch('http://127.0.0.1:7242/ingest/1d9ea195-40d1-47e5-a8cf-0285be79d950', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: 'debug-session',
-      runId: 'run1',
-      hypothesisId,
-      location,
-      message,
-      data,
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-};
-// #endregion
 
 interface CaptchaInfo {
   uuid: string;
@@ -58,44 +36,30 @@ const LoginPage: React.FC = () => {
 
   const fetchCaptcha = async () => {
     try {
-      const response = await fetch('/api/auth/captcha');
-      const result = await response.json();
-      if (result.success) {
-        setCaptcha(result.data);
-        agentDebugLog('H5', 'LoginPage.fetchCaptcha', 'captcha fetched', {
-          success: true,
-          hasData: Boolean(result.data),
-        });
+      const response = await httpClient.get<ApiResponse<CaptchaInfo>>('/api/auth/captcha');
+      if (response.data.success && response.data.data) {
+        setCaptcha(response.data.data);
       }
     } catch (error) {
       message.error('获取验证码失败');
-      agentDebugLog('H5', 'LoginPage.fetchCaptcha', 'captcha fetch failed', {
-        success: false,
-        error: (error as Error).message,
-      });
+      console.error('获取验证码失败:', error);
     }
   };
 
   const handleUsernameLogin = async (values: any) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userName: values.username,
-          password: values.password,
-          captchaUuid: captcha?.uuid,
-          captchaCode: values.captchaCode,
-          rememberMe: false
-        })
+      const response = await httpClient.post<ApiResponse<{ token: string }>>('/api/auth/login', {
+        userName: values.username,
+        password: values.password,
+        captchaUuid: captcha?.uuid,
+        captchaCode: values.captchaCode,
+        rememberMe: false
       });
 
-      const result = await response.json();
-      if (result.success) {
+      if (response.data.success && response.data.data) {
         // 保存Token
-        setToken(result.data.token);
-        authStore.setToken(result.data.token);
+        authStore.setToken(response.data.data.token);
         
         message.success('登录成功');
         
@@ -103,11 +67,12 @@ const LoginPage: React.FC = () => {
         const redirect = searchParams.get('redirect') || '/';
         navigate(redirect);
       } else {
-        message.error(result.message || '登录失败');
+        message.error(response.data.message || '登录失败');
         fetchCaptcha(); // 刷新验证码
       }
     } catch (error) {
       message.error('登录失败,请稍后重试');
+      fetchCaptcha(); // 刷新验证码
     } finally {
       setLoading(false);
     }
@@ -122,21 +87,16 @@ const LoginPage: React.FC = () => {
 
     setSmsLoading(true);
     try {
-      const response = await fetch('/api/auth/sms/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phoneNumber: phone,
-          type: 0 // Login
-        })
+      const response = await httpClient.post<ApiResponse<void>>('/api/auth/sms/send', {
+        phoneNumber: phone,
+        type: 0 // Login
       });
 
-      const result = await response.json();
-      if (result.success) {
+      if (response.data.success) {
         message.success('验证码已发送');
         setCountdown(60);
       } else {
-        message.error(result.message || '发送失败');
+        message.error(response.data.message || '发送失败');
       }
     } catch (error) {
       message.error('发送失败,请稍后重试');
@@ -148,20 +108,14 @@ const LoginPage: React.FC = () => {
   const handlePhoneLogin = async (values: any) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/phone-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phoneNumber: values.phone,
-          code: values.smsCode
-        })
+      const response = await httpClient.post<ApiResponse<{ token: string }>>('/api/auth/phone-login', {
+        phoneNumber: values.phone,
+        code: values.smsCode
       });
 
-      const result = await response.json();
-      if (result.success) {
+      if (response.data.success && response.data.data) {
         // 保存Token
-        setToken(result.data.token);
-        authStore.setToken(result.data.token);
+        authStore.setToken(response.data.data.token);
         
         message.success('登录成功');
         
@@ -169,7 +123,7 @@ const LoginPage: React.FC = () => {
         const redirect = searchParams.get('redirect') || '/';
         navigate(redirect);
       } else {
-        message.error(result.message || '登录失败');
+        message.error(response.data.message || '登录失败');
       }
     } catch (error) {
       message.error('登录失败,请稍后重试');
@@ -180,10 +134,11 @@ const LoginPage: React.FC = () => {
 
   const handleThirdPartyLogin = async (provider: string) => {
     try {
-      const response = await fetch(`/api/auth/oauth/${provider}/authorize?redirectUrl=${encodeURIComponent(window.location.origin + '/auth/callback')}`);
-      const result = await response.json();
-      if (result.success && result.data) {
-        window.location.href = result.data;
+      const response = await httpClient.get<ApiResponse<string>>(
+        `/api/auth/oauth/${provider}/authorize?redirectUrl=${encodeURIComponent(window.location.origin + '/auth/callback')}`
+      );
+      if (response.data.success && response.data.data) {
+        window.location.href = response.data.data;
       } else {
         message.error('获取授权链接失败');
       }
@@ -315,10 +270,6 @@ const LoginPage: React.FC = () => {
   // 获取图形验证码
   useEffect(() => {
     if (activeTab === 'username') {
-      agentDebugLog('H4', 'LoginPage.useEffect', 'fetchCaptcha triggered', {
-        activeTab,
-        hasCaptcha: Boolean(captcha),
-      });
       fetchCaptcha();
     }
   }, [activeTab]);

@@ -1,33 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useAuthStore } from '../stores/authStore';
 import { useRouterStore } from '../stores/routerStore';
-import { getToken } from '../utils/auth';
 import { getInfo, getRouters } from '../services/authService';
-
-// #region agent log
-const agentDebugLog = (
-  hypothesisId: string,
-  location: string,
-  message: string,
-  data?: Record<string, unknown>,
-) => {
-  fetch('http://127.0.0.1:7242/ingest/1d9ea195-40d1-47e5-a8cf-0285be79d950', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: 'debug-session',
-      runId: 'run1',
-      hypothesisId,
-      location,
-      message,
-      data,
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-};
-// #endregion
 
 /**
  * 路由守卫组件
@@ -36,6 +12,7 @@ const AuthGuard: React.FC = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
+  const isCheckingRef = useRef(false);
   
   const { token, roles, setUserInfo, setRoles, setPermissions } = useAuthStore();
   const { setRoutes } = useRouterStore();
@@ -45,58 +22,48 @@ const AuthGuard: React.FC = () => {
 
   useEffect(() => {
     checkAuth();
-  }, [location.pathname]);
+  }, [token]); // 仅依赖 token 变化
 
   const checkAuth = async () => {
-    const currentToken = token || getToken();
-    agentDebugLog('H6', 'AuthGuard.checkAuth', 'auth check triggered', {
-      pathname: location.pathname,
-      hasToken: Boolean(currentToken),
-      rolesCount: roles.length,
-    });
+    // 防止重复请求
+    if (isCheckingRef.current) {
+      return;
+    }
 
-    // 无Token且不在白名单
-    if (!currentToken) {
-      if (whiteList.includes(location.pathname)) {
-        setAuthenticated(true);
-        setLoading(false);
-      } else {
-        setAuthenticated(false);
-        setLoading(false);
-      }
+    // 无Token
+    if (!token) {
+      setAuthenticated(false);
+      setLoading(false);
+      return;
+    }
+
+    // 有Token且已加载用户信息
+    if (roles.length > 0) {
+      setAuthenticated(true);
+      setLoading(false);
       return;
     }
 
     // 有Token但未加载用户信息
-    if (roles.length === 0) {
-      try {
-        // 获取用户信息
-        const userInfo = await getInfo();
-        setUserInfo(userInfo.user);
-        setRoles(userInfo.roles);
-        setPermissions(userInfo.permissions);
+    isCheckingRef.current = true;
+    try {
+      // 获取用户信息
+      const userInfo = await getInfo();
+      setUserInfo(userInfo.user);
+      setRoles(userInfo.roles);
+      setPermissions(userInfo.permissions);
 
-        // 获取动态路由
-        const routers = await getRouters();
-        setRoutes(routers);
+      // 获取动态路由
+      const routers = await getRouters();
+      setRoutes(routers);
 
-        setAuthenticated(true);
-        agentDebugLog('H6', 'AuthGuard.checkAuth', 'user info & routes loaded', {
-          roles: userInfo.roles?.length ?? 0,
-          permissions: userInfo.permissions?.length ?? 0,
-        });
-      } catch (error) {
-        console.error('获取用户信息失败:', error);
-        setAuthenticated(false);
-        agentDebugLog('H6', 'AuthGuard.checkAuth', 'failed to load user info', {
-          error: (error as Error).message,
-        });
-      } finally {
-        setLoading(false);
-      }
-    } else {
       setAuthenticated(true);
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+      setAuthenticated(false);
+    } finally {
       setLoading(false);
+      isCheckingRef.current = false;
     }
   };
 

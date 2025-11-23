@@ -1,23 +1,23 @@
-const TOKEN_KEY = 'WFC-Token';
+import { useAuthStore } from '../stores/authStore';
 
 /**
- * 获取Token
+ * 获取Token（从 Zustand store）
  */
 export const getToken = (): string | null => {
-  return localStorage.getItem(TOKEN_KEY);
+  return useAuthStore.getState().token;
 };
 
 /**
- * 设置Token
+ * 设置Token（更新 Zustand store）
  */
 export const setToken = (token: string): void => {
-  localStorage.setItem(TOKEN_KEY, token);
+  useAuthStore.getState().setToken(token);
 };
 
 /**
- * 移除Token
+ * 移除Token（清除 Zustand store）
  */
 export const removeToken = (): void => {
-  localStorage.removeItem(TOKEN_KEY);
+  useAuthStore.getState().setToken(null);
 };
 
