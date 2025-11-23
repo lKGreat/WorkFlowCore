@@ -15,9 +15,6 @@ public static class DbInitializer
     /// </summary>
     public static async Task InitializeAsync(WorkFlowDbContext context)
     {
-        // 确保数据库已创建
-        await context.Database.EnsureCreatedAsync();
-
         // 检查是否已存在测试租户
         var testTenantId = 1L;
         var existingTenant = await context.Tenants

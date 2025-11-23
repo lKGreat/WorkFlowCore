@@ -135,7 +135,7 @@ public class WorkFlowCoreHttpApiModule : AbpModule
 
     private void ConfigureWorkflowCore(IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        var connectionString = configuration.GetConnectionString("Default");
         services.AddWorkflow(x => x.UseSqlite(connectionString!, true));
     }
 
