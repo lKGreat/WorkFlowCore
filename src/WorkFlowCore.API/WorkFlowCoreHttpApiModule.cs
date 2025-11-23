@@ -14,11 +14,13 @@ using Volo.Abp.Identity;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement.HttpApi;
 using Volo.Abp.SettingManagement;
+using WorkFlowCore.API.Middleware;
 using WorkFlowCore.Application;
 using WorkFlowCore.Application.Common;
 using WorkFlowCore.Infrastructure;
 using WorkFlowCore.Infrastructure.Data;
 using WorkFlowCore.Infrastructure.Services;
+using Microsoft.AspNetCore.HttpLogging;
 
 namespace WorkFlowCore.API;
 
@@ -48,6 +50,7 @@ public class WorkFlowCoreHttpApiModule : AbpModule
         ConfigureExceptionHandling(context.Services);
         ConfigureValidation(context.Services);
         ConfigureAutoMapper(context.Services);
+        ConfigureHttpLogging(context.Services, hostingEnvironment);
         ConfigureCustomServices(context.Services, configuration);
     }
 
@@ -194,6 +197,40 @@ public class WorkFlowCoreHttpApiModule : AbpModule
         // AutoMapper在ApplicationModule中已配置，这里无需重复
     }
 
+    private void ConfigureHttpLogging(IServiceCollection services, IWebHostEnvironment environment)
+    {
+        services.AddHttpLogging(options =>
+        {
+            // 记录请求和响应的详细信息
+            options.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.All;
+
+            // 敏感信息头部脱敏
+            options.RequestHeaders.Add("Authorization");
+            options.RequestHeaders.Add("Cookie");
+            options.ResponseHeaders.Add("Set-Cookie");
+
+            // 请求体大小限制（32KB）
+            options.RequestBodyLogLimit = 32 * 1024;
+            options.ResponseBodyLogLimit = 32 * 1024;
+
+            // 敏感字段脱敏
+            options.MediaTypeOptions.AddText("application/json");
+            options.MediaTypeOptions.AddText("application/xml");
+
+            // 开发环境记录更多信息
+            if (environment.IsDevelopment())
+            {
+                options.CombineLogs = false; // 分开记录请求和响应
+            }
+            else
+            {
+                options.CombineLogs = true; // 生产环境合并日志
+                options.RequestBodyLogLimit = 4 * 1024;
+                options.ResponseBodyLogLimit = 4 * 1024;
+            }
+        });
+    }
+
     private void ConfigureCustomServices(IServiceCollection services, IConfiguration configuration)
     {
         // 注册HttpContextAccessor
@@ -236,6 +273,12 @@ public class WorkFlowCoreHttpApiModule : AbpModule
     {
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
+
+        // 使用官方 HTTP Logging 中间件（放在最前面）
+        app.UseHttpLogging();
+
+        // 注册全局异常处理中间件
+        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
         if (env.IsDevelopment())
         {

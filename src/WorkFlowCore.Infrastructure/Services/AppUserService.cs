@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
@@ -28,6 +29,21 @@ public class AppUserService : ApplicationService, IAppUserService
         _userManager = userManager;
         _deptRepository = deptRepository;
         _userRoleRepository = userRoleRepository;
+    }
+
+    /// <summary>
+    /// 记录服务操作日志
+    /// </summary>
+    private void LogServiceOperation(string operation, string message, object? data = null)
+    {
+        Logger.LogInformation(
+            "服务操作 | 服务: {Service} | 操作: {Operation} | 租户: {TenantId} | 消息: {Message} | 数据: {@Data}",
+            nameof(AppUserService),
+            operation,
+            CurrentTenant.Id,
+            message,
+            data
+        );
     }
 
     public async Task<PagedResponse<UserListDto>> GetPagedAsync(UserPagedRequest request)
@@ -145,48 +161,63 @@ public class AppUserService : ApplicationService, IAppUserService
 
     public async Task<UserListDto> CreateAsync(CreateUserInput input)
     {
-        // 检查用户名是否存在
-        var existingUser = await _userManager.FindByNameAsync(input.UserName);
-        if (existingUser != null)
-        {
-            throw new Volo.Abp.UserFriendlyException($"用户名 '{input.UserName}' 已存在");
-        }
+        LogServiceOperation("CreateUser", "开始创建用户", new { input.UserName, input.Email });
 
-        // 创建用户
-        var user = new AppUser(Guid.NewGuid(), input.UserName, input.Email, CurrentTenant.Id)
+        try
         {
-            NickName = input.NickName,
-            DepartmentId = input.DepartmentId,
-            Status = input.Status
-        };
-
-        var result = await _userManager.CreateAsync(user, input.Password);
-        if (!result.Succeeded)
-        {
-            throw new Volo.Abp.UserFriendlyException($"创建用户失败: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-        }
-
-        // 设置手机号
-        if (!string.IsNullOrEmpty(input.PhoneNumber))
-        {
-            await _userManager.SetPhoneNumberAsync(user, input.PhoneNumber);
-        }
-
-        // 分配角色 (批量查询优化)
-        if (input.RoleIds.Any())
-        {
-            var roleManager = LazyServiceProvider.LazyGetRequiredService<RoleManager<IdentityRole>>();
-            var roleQuery = roleManager.Roles.Where(r => input.RoleIds.Contains(r.Id));
-            var roleList = await roleQuery.ToListAsync();
-            var roleNames = roleList.Select(r => r.Name!).ToList();
-            
-            if (roleNames.Any())
+            // 检查用户名是否存在
+            var existingUser = await _userManager.FindByNameAsync(input.UserName);
+            if (existingUser != null)
             {
-                await _userManager.AddToRolesAsync(user, roleNames);
+                Logger.LogWarning("创建用户失败: 用户名 '{UserName}' 已存在", input.UserName);
+                throw new Volo.Abp.UserFriendlyException($"用户名 '{input.UserName}' 已存在");
             }
-        }
 
-        return (await GetByIdAsync(user.Id))!;
+            // 创建用户
+            var user = new AppUser(Guid.NewGuid(), input.UserName, input.Email, CurrentTenant.Id)
+            {
+                NickName = input.NickName,
+                DepartmentId = input.DepartmentId,
+                Status = input.Status
+            };
+
+            var result = await _userManager.CreateAsync(user, input.Password);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                Logger.LogError("创建用户失败: {Errors} | 用户名: {UserName}", errors, input.UserName);
+                throw new Volo.Abp.UserFriendlyException($"创建用户失败: {errors}");
+            }
+
+            // 设置手机号
+            if (!string.IsNullOrEmpty(input.PhoneNumber))
+            {
+                await _userManager.SetPhoneNumberAsync(user, input.PhoneNumber);
+            }
+
+            // 分配角色 (批量查询优化)
+            if (input.RoleIds.Any())
+            {
+                var roleManager = LazyServiceProvider.LazyGetRequiredService<RoleManager<IdentityRole>>();
+                var roleQuery = roleManager.Roles.Where(r => input.RoleIds.Contains(r.Id));
+                var roleList = await roleQuery.ToListAsync();
+                var roleNames = roleList.Select(r => r.Name!).ToList();
+                
+                if (roleNames.Any())
+                {
+                    await _userManager.AddToRolesAsync(user, roleNames);
+                    Logger.LogDebug("为用户 {UserName} 分配角色: {Roles}", input.UserName, string.Join(", ", roleNames));
+                }
+            }
+
+            LogServiceOperation("CreateUser", "用户创建成功", new { UserId = user.Id, UserName = input.UserName });
+            return (await GetByIdAsync(user.Id))!;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "创建用户异常 | 用户名: {UserName}", input.UserName);
+            throw;
+        }
     }
 
     public async Task UpdateAsync(UpdateUserInput input)
@@ -230,15 +261,30 @@ public class AppUserService : ApplicationService, IAppUserService
 
     public async Task DeleteAsync(List<Guid> ids)
     {
-        // 批量查询用户
-        var users = await _userManager.Users
-            .Where(u => ids.Contains(u.Id))
-            .ToListAsync();
+        LogServiceOperation("DeleteUser", $"开始删除用户，数量: {ids.Count}", new { UserIds = ids });
 
-        // 批量删除
-        foreach (var user in users)
+        try
         {
-            await _userManager.DeleteAsync(user);
+            // 批量查询用户
+            var users = await _userManager.Users
+                .Where(u => ids.Contains(u.Id))
+                .ToListAsync();
+
+            Logger.LogDebug("查询到 {Count} 个用户待删除", users.Count);
+
+            // 批量删除
+            foreach (var user in users)
+            {
+                await _userManager.DeleteAsync(user);
+                Logger.LogDebug("已删除用户: {UserId} - {UserName}", user.Id, user.UserName);
+            }
+
+            LogServiceOperation("DeleteUser", $"删除用户成功，数量: {users.Count}", new { DeletedCount = users.Count });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "删除用户异常 | 用户IDs: {UserIds}", ids);
+            throw;
         }
     }
 
