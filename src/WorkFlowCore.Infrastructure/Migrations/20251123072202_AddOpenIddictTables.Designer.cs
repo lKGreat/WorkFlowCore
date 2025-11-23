@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 using WorkFlowCore.Infrastructure.Data;
@@ -11,9 +12,11 @@ using WorkFlowCore.Infrastructure.Data;
 namespace WorkFlowCore.Infrastructure.Migrations
 {
     [DbContext(typeof(WorkFlowDbContext))]
-    partial class WorkFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251123072202_AddOpenIddictTables")]
+    partial class AddOpenIddictTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
