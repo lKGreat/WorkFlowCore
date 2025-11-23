@@ -6,6 +6,11 @@ using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
+using Volo.Abp.OpenIddict.Applications;
+using Volo.Abp.OpenIddict.Authorizations;
+using Volo.Abp.OpenIddict.EntityFrameworkCore;
+using Volo.Abp.OpenIddict.Scopes;
+using Volo.Abp.OpenIddict.Tokens;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using WorkFlowCore.Domain.Entities;
@@ -14,7 +19,7 @@ using WorkFlowCore.Domain.Identity;
 namespace WorkFlowCore.Infrastructure.Data;
 
 [ConnectionStringName("Default")]
-public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbContext
+public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbContext, IOpenIddictDbContext
 {
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<User> WorkFlowUsers { get; set; }
@@ -43,6 +48,12 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
     public DbSet<IdentityLinkUser> LinkUsers => Set<IdentityLinkUser>();
     public DbSet<IdentityUserDelegation> UserDelegations => Set<IdentityUserDelegation>();
     public DbSet<IdentitySession> Sessions => Set<IdentitySession>();
+    
+    // ABP OpenIddict tables (required by IOpenIddictDbContext)
+    public DbSet<OpenIddictApplication> Applications => Set<OpenIddictApplication>();
+    public DbSet<OpenIddictAuthorization> Authorizations => Set<OpenIddictAuthorization>();
+    public DbSet<OpenIddictScope> Scopes => Set<OpenIddictScope>();
+    public DbSet<OpenIddictToken> Tokens => Set<OpenIddictToken>();
 
     public WorkFlowDbContext(DbContextOptions<WorkFlowDbContext> options) : base(options)
     {
@@ -52,8 +63,9 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
     {
         base.OnModelCreating(builder);
 
-        /* Configure ABP Identity module */
+        /* Configure ABP modules */
         builder.ConfigureIdentity();
+        builder.ConfigureOpenIddict();
         builder.ConfigurePermissionManagement();
         builder.ConfigureSettingManagement();
         builder.ConfigureAuditLogging();

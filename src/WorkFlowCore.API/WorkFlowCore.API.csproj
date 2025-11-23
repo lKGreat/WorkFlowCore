@@ -24,6 +24,7 @@
     <PackageReference Include="Volo.Abp.SettingManagement.HttpApi" Version="9.3.6" />
     <PackageReference Include="Volo.Abp.Account.HttpApi" Version="9.3.6" />
     <PackageReference Include="Volo.Abp.Account.Web.OpenIddict" Version="9.3.6" />
+    <PackageReference Include="Volo.Abp.OpenIddict.EntityFrameworkCore" Version="9.3.6" />
     <PackageReference Include="AspNet.Security.OAuth.Weixin" Version="8.0.0" />
     <PackageReference Include="AspNet.Security.OAuth.QQ" Version="8.0.0" />
   </ItemGroup>
