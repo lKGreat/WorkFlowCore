@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
 using WorkFlowCore.Application.Common;
 using WorkFlowCore.Application.DTOs;
@@ -23,6 +24,7 @@ public class AuthController : BaseController
     private readonly IQrCodeLoginService _qrCodeLoginService;
     private readonly SignInManager<AppUser> _signInManager;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IRepository<AppUser, Guid> _userRepository;
     private readonly JwtService _jwtService;
 
     public AuthController(
@@ -32,6 +34,7 @@ public class AuthController : BaseController
         IQrCodeLoginService qrCodeLoginService,
         SignInManager<AppUser> signInManager,
         UserManager<AppUser> userManager,
+        IRepository<AppUser, Guid> userRepository,
         JwtService jwtService)
     {
         _captchaService = captchaService;
@@ -40,6 +43,7 @@ public class AuthController : BaseController
         _qrCodeLoginService = qrCodeLoginService;
         _signInManager = signInManager;
         _userManager = userManager;
+        _userRepository = userRepository;
         _jwtService = jwtService;
     }
 
@@ -59,12 +63,12 @@ public class AuthController : BaseController
     /// </summary>
     [HttpPost("sms/send")]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponse<object>>> SendSmsCode([FromBody] SendSmsCodeInput input)
+    public async Task<ActionResult<ApiResponse<object?>>> SendSmsCode([FromBody] SendSmsCodeInput input)
     {
         var result = await _smsCodeService.SendAsync(input.PhoneNumber, (Domain.Common.SmsCodeType)input.Type);
         return result
-            ? ApiResponse<object>.Ok(null, "发送成功").ToActionResult()
-            : ApiResponse<object>.Fail("发送失败").ToActionResult();
+            ? ApiResponse<object?>.Ok(null, "发送成功").ToActionResult()
+            : ApiResponse<object?>.Fail("发送失败").ToActionResult();
     }
 
     /// <summary>
@@ -123,13 +127,18 @@ public class AuthController : BaseController
             return ApiResponse<LoginResponse>.Fail("验证码错误").ToActionResult();
         }
 
-        // 查找用户 (ABP UserManager没有FindByPhoneNumberAsync,使用LINQ查询)
-        var users = await _userManager.GetUsersInRoleAsync("User"); // 或者使用其他方式获取所有用户
-        var user = users.FirstOrDefault(u => u.PhoneNumber == input.PhoneNumber);
+        // 直接查询AppUser表 (使用ABP仓储)
+        var userQueryable = await _userRepository.GetQueryableAsync();
+        var user = userQueryable.FirstOrDefault(u => u.PhoneNumber == input.PhoneNumber);
         
         if (user == null)
         {
-            return ApiResponse<LoginResponse>.Fail("用户不存在").ToActionResult();
+            return ApiResponse<LoginResponse>.Fail("该手机号未注册").ToActionResult();
+        }
+
+        if (!user.IsActive)
+        {
+            return ApiResponse<LoginResponse>.Fail("账号已被禁用").ToActionResult();
         }
 
         var token = _jwtService.GenerateToken(user.Id, user.UserName!, user.TenantId ?? Guid.Empty);
@@ -200,15 +209,15 @@ public class AuthController : BaseController
     /// </summary>
     [HttpPost("oauth/{provider}/bind")]
     [Authorize]
-    public async Task<ActionResult<ApiResponse<object>>> BindThirdPartyAccount(
+    public async Task<ActionResult<ApiResponse<object?>>> BindThirdPartyAccount(
         string provider,
         [FromBody] BindAccountInput input)
     {
-        var userId = CurrentUser.Id.Value;
+        var userId = CurrentUser.Id!.Value;
         var result = await _thirdPartyLoginService.BindAccountAsync(userId, provider, input.TempToken);
         return result
-            ? ApiResponse<object>.Ok(null, "绑定成功").ToActionResult()
-            : ApiResponse<object>.Fail("绑定失败").ToActionResult();
+            ? ApiResponse<object?>.Ok(null, "绑定成功").ToActionResult()
+            : ApiResponse<object?>.Fail("绑定失败").ToActionResult();
     }
 
     /// <summary>
@@ -216,13 +225,13 @@ public class AuthController : BaseController
     /// </summary>
     [HttpPost("oauth/{provider}/unbind")]
     [Authorize]
-    public async Task<ActionResult<ApiResponse<object>>> UnbindThirdPartyAccount(string provider)
+    public async Task<ActionResult<ApiResponse<object?>>> UnbindThirdPartyAccount(string provider)
     {
-        var userId = CurrentUser.Id.Value;
+        var userId = CurrentUser.Id!.Value;
         var result = await _thirdPartyLoginService.UnbindAccountAsync(userId, provider);
         return result
-            ? ApiResponse<object>.Ok(null, "解绑成功").ToActionResult()
-            : ApiResponse<object>.Fail("解绑失败").ToActionResult();
+            ? ApiResponse<object?>.Ok(null, "解绑成功").ToActionResult()
+            : ApiResponse<object?>.Fail("解绑失败").ToActionResult();
     }
 
     /// <summary>
@@ -241,13 +250,13 @@ public class AuthController : BaseController
     /// </summary>
     [HttpPost("qrcode/scan")]
     [Authorize]
-    public async Task<ActionResult<ApiResponse<object>>> ScanQrCode([FromBody] ScanQrCodeInput input)
+    public async Task<ActionResult<ApiResponse<object?>>> ScanQrCode([FromBody] ScanQrCodeInput input)
     {
-        var userId = CurrentUser.Id.Value;
+        var userId = CurrentUser.Id!.Value;
         var result = await _qrCodeLoginService.ScanAsync(input.Uuid, userId);
         return result
-            ? ApiResponse<object>.Ok(null, "扫描成功").ToActionResult()
-            : ApiResponse<object>.Fail("二维码已失效").ToActionResult();
+            ? ApiResponse<object?>.Ok(null, "扫描成功").ToActionResult()
+            : ApiResponse<object?>.Fail("二维码已失效").ToActionResult();
     }
 
     /// <summary>
@@ -255,13 +264,13 @@ public class AuthController : BaseController
     /// </summary>
     [HttpPost("qrcode/confirm")]
     [Authorize]
-    public async Task<ActionResult<ApiResponse<object>>> ConfirmQrCode([FromBody] ConfirmQrCodeInput input)
+    public async Task<ActionResult<ApiResponse<object?>>> ConfirmQrCode([FromBody] ConfirmQrCodeInput input)
     {
-        var userId = CurrentUser.Id.Value;
+        var userId = CurrentUser.Id!.Value;
         var result = await _qrCodeLoginService.ConfirmAsync(input.Uuid, userId);
         return result
-            ? ApiResponse<object>.Ok(null, "确认成功").ToActionResult()
-            : ApiResponse<object>.Fail("确认失败").ToActionResult();
+            ? ApiResponse<object?>.Ok(null, "确认成功").ToActionResult()
+            : ApiResponse<object?>.Fail("确认失败").ToActionResult();
     }
 
     /// <summary>
@@ -293,10 +302,10 @@ public class AuthController : BaseController
     /// </summary>
     [HttpPost("logout")]
     [Authorize]
-    public async Task<ActionResult<ApiResponse<object>>> Logout()
+    public async Task<ActionResult<ApiResponse<object?>>> Logout()
     {
         await _signInManager.SignOutAsync();
-        return ApiResponse<object>.Ok(null, "退出成功").ToActionResult();
+        return ApiResponse<object?>.Ok(null, "退出成功").ToActionResult();
     }
 
     /// <summary>
@@ -306,7 +315,7 @@ public class AuthController : BaseController
     [Authorize]
     public async Task<ActionResult<ApiResponse<UserDto>>> GetUserInfo()
     {
-        var userId = CurrentUser.Id.Value;
+        var userId = CurrentUser.Id!.Value;
         var user = await _userManager.FindByIdAsync(userId.ToString());
 
         if (user == null)
@@ -336,11 +345,11 @@ public class AuthController : BaseController
     {
         return new UserDto
         {
-            Id = 0, // TODO: 需要处理Guid到long的转换
-            UserName = user.UserName!,
-            RealName = user.NickName,
-            Email = user.Email,
-            Phone = user.PhoneNumber,
+            Id = 0, // AppUser使用Guid主键,暂时返回0
+            UserName = user.UserName ?? string.Empty,
+            RealName = user.NickName ?? string.Empty,
+            Email = user.Email ?? string.Empty,
+            Phone = user.PhoneNumber ?? string.Empty,
             IsEnabled = user.Status == "0"
         };
     }

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Distributed;
+using SkiaSharp;
 using Volo.Abp.Caching;
 using WorkFlowCore.Application.DTOs.Auth;
 using WorkFlowCore.Domain.Common;
@@ -75,14 +76,58 @@ public class CaptchaService : ICaptchaService
     }
 
     /// <summary>
-    /// 生成验证码图片 (简化版,使用Base64编码)
-    /// TODO: 使用 SkiaSharp 或其他图形库生成真实图片
+    /// 生成验证码图片 (使用SkiaSharp)
     /// </summary>
     private string GenerateImage(string code)
     {
-        // 简化实现:直接返回文本形式的Base64
-        // 生产环境应使用图形库生成真实的验证码图片
-        var bytes = System.Text.Encoding.UTF8.GetBytes($"CAPTCHA:{code}");
-        return $"data:text/plain;base64,{Convert.ToBase64String(bytes)}";
+        using var surface = SkiaSharp.SKSurface.Create(new SkiaSharp.SKImageInfo(120, 40));
+        var canvas = surface.Canvas;
+        canvas.Clear(SkiaSharp.SKColors.White);
+
+        // 绘制背景噪点
+        var random = new Random();
+        using var noisePaint = new SkiaSharp.SKPaint { Color = SkiaSharp.SKColors.LightGray };
+        for (int i = 0; i < 50; i++)
+        {
+            canvas.DrawCircle(random.Next(120), random.Next(40), 1, noisePaint);
+        }
+
+        // 绘制验证码文字 (使用新API)
+        using var font = new SkiaSharp.SKFont(SkiaSharp.SKTypeface.FromFamilyName("Arial", SkiaSharp.SKFontStyle.Bold), 28);
+        using var textPaint = new SkiaSharp.SKPaint
+        {
+            Color = SkiaSharp.SKColors.Black,
+            IsAntialias = true
+        };
+
+        float x = 10;
+        for (int i = 0; i < code.Length; i++)
+        {
+            // 随机倾斜和颜色
+            canvas.Save();
+            canvas.Translate(x, 30);
+            canvas.RotateDegrees(random.Next(-15, 15));
+            
+            var colors = new[] { SkiaSharp.SKColors.Blue, SkiaSharp.SKColors.Red, SkiaSharp.SKColors.Green, SkiaSharp.SKColors.Orange };
+            textPaint.Color = colors[random.Next(colors.Length)];
+            
+            canvas.DrawText(code[i].ToString(), 0, 0, font, textPaint);
+            canvas.Restore();
+            
+            x += 25;
+        }
+
+        // 绘制干扰线
+        using var linePaint = new SkiaSharp.SKPaint { Color = SkiaSharp.SKColors.Gray, StrokeWidth = 1 };
+        for (int i = 0; i < 3; i++)
+        {
+            canvas.DrawLine(random.Next(120), random.Next(40), random.Next(120), random.Next(40), linePaint);
+        }
+
+        // 转换为Base64
+        using var image = surface.Snapshot();
+        using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+        var bytes = data.ToArray();
+        return $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
     }
 }
