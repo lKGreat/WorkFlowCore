@@ -69,13 +69,17 @@ public class WorkFlowCoreHttpApiModule : AbpModule
 
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
+        var allowedOrigins = configuration.GetSection("CORS:AllowedOrigins").Get<string[]>()
+                             ?? new[] { "http://localhost:5173" };
+
         context.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowAll", policy =>
+            options.AddPolicy("Default", policy =>
             {
-                policy.AllowAnyOrigin()
+                policy.WithOrigins(allowedOrigins)
                       .AllowAnyMethod()
-                      .AllowAnyHeader();
+                      .AllowAnyHeader()
+                      .AllowCredentials(); // 允许携带凭证（Cookie、Authorization Header）
             });
         });
     }
@@ -242,35 +246,13 @@ public class WorkFlowCoreHttpApiModule : AbpModule
         // 配置分布式内存缓存(开发环境使用,生产环境应使用Redis)
         services.AddDistributedMemoryCache();
 
-        // 注册当前用户服务
+        // 注册当前用户服务（特殊服务，依赖 IHttpContextAccessor）
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-        // 注册流程定义服务
-        services.AddScoped<Application.Services.IProcessDefinitionService, ProcessDefinitionService>();
-
-        // 注册菜单服务
-        services.AddScoped<Application.Services.IMenuService, MenuService>();
-
-        // 注册用户服务
-        services.AddScoped<Application.Services.IAppUserService, AppUserService>();
-
-        // 注册角色服务
-        services.AddScoped<Application.Services.IRoleService, RoleService>();
-
-        // 注册字典服务
-        services.AddScoped<Application.Services.IDictService, DictService>();
-
-        // 注册系统配置服务
-        services.AddScoped<Application.Services.IConfigService, ConfigService>();
-
-        // 注册操作日志服务
-        services.AddScoped<Application.Services.IOperationLogService, OperationLogService>();
-
-        // 注册文件存储服务
-        services.AddScoped<Application.Services.IFileStorageProviderService, FileStorageProviderService>();
-        services.AddScoped<Application.Services.IFileUploadService, FileUploadService>();
-        services.AddScoped<Application.Services.IFileAccessService, FileAccessService>();
-        services.AddSingleton<SmsService>();
+        // 其他服务已通过 ABP 约定自动注册（实现 IApplicationService 或 ITransientDependency 接口）
+        // - ProcessDefinitionService, MenuService, AppUserService 等继承自 ApplicationService (自动注册为 Scoped)
+        // - SmsCodeService, CaptchaService, QrCodeLoginService, ThirdPartyLoginService 实现 ITransientDependency
+        // - SmsService 实现 ITransientDependency
 
         // #region agent log
         try
@@ -311,7 +293,7 @@ public class WorkFlowCoreHttpApiModule : AbpModule
             });
         }
 
-        app.UseCors("AllowAll");
+        app.UseCors("Default");
         app.UseHttpsRedirection();
         app.UseRouting(); 
         app.UseAuthentication();

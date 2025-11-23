@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.Caching;
+using Volo.Abp.DependencyInjection;
 using WorkFlowCore.Application.Services.Sms;
 using WorkFlowCore.Domain.Common;
 
@@ -9,7 +10,7 @@ namespace WorkFlowCore.Application.Services.Auth;
 /// <summary>
 /// 短信验证码服务实现
 /// </summary>
-public class SmsCodeService : ISmsCodeService
+public class SmsCodeService : ISmsCodeService, ITransientDependency
 {
     private readonly IDistributedCache<SmsCodeCacheItem> _cache;
     private readonly SmsService _smsService;

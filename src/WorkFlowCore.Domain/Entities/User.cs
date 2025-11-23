@@ -50,6 +50,11 @@ public class User : FullAuditedAggregateRoot<long>, IMultiTenant
     public bool IsEnabled { get; set; } = true;
 
     /// <summary>
+    /// 关联的 ABP Identity 用户ID
+    /// </summary>
+    public Guid? AbpUserId { get; set; }
+
+    /// <summary>
     /// 租户ID
     /// </summary>
     public Guid? TenantId { get; protected set; }

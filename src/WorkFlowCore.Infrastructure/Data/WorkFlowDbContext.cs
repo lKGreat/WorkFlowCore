@@ -118,6 +118,8 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
             b.ConfigureByConvention();
             b.Property(e => e.Id).ValueGeneratedNever();
             b.HasIndex(u => u.UserName);
+            b.HasIndex(u => u.AbpUserId); // 添加索引提升查询性能
+            b.Property(u => u.AbpUserId).HasComment("关联的 ABP Identity 用户ID");
         });
 
         builder.Entity<Department>(b =>

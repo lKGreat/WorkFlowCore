@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using WorkFlowCore.Application.DTOs.Auth;
 using WorkFlowCore.Domain.Data;
@@ -10,7 +11,7 @@ namespace WorkFlowCore.Application.Services.Auth;
 /// <summary>
 /// 第三方登录服务实现
 /// </summary>
-public class ThirdPartyLoginService : IThirdPartyLoginService
+public class ThirdPartyLoginService : IThirdPartyLoginService, ITransientDependency
 {
     private readonly IRepository<UserThirdPartyAccount, long> _thirdPartyAccountRepository;
     private readonly IRepository<AppUser, Guid> _userRepository;

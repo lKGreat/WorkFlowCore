@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Caching.Distributed;
 using SkiaSharp;
 using Volo.Abp.Caching;
+using Volo.Abp.DependencyInjection;
 using WorkFlowCore.Application.DTOs.Auth;
 using WorkFlowCore.Domain.Common;
 
@@ -9,7 +10,7 @@ namespace WorkFlowCore.Application.Services.Auth;
 /// <summary>
 /// 图形验证码服务实现
 /// </summary>
-public class CaptchaService : ICaptchaService
+public class CaptchaService : ICaptchaService, ITransientDependency
 {
     private readonly IDistributedCache<CaptchaCacheItem> _cache;
 

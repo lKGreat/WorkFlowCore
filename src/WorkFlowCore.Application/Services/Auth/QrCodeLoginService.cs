@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using Volo.Abp.Caching;
+using Volo.Abp.DependencyInjection;
 using WorkFlowCore.Application.DTOs.Auth;
 using WorkFlowCore.Domain.Common;
 
@@ -9,7 +10,7 @@ namespace WorkFlowCore.Application.Services.Auth;
 /// <summary>
 /// 二维码登录服务实现
 /// </summary>
-public class QrCodeLoginService : IQrCodeLoginService
+public class QrCodeLoginService : IQrCodeLoginService, ITransientDependency
 {
     private readonly IDistributedCache<QrCodeCacheItem> _cache;
 

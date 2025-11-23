@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { secureStorage } from '../utils/secureStorage';
 
 interface UserInfo {
   userId: string;
@@ -27,6 +28,22 @@ interface AuthState {
   logout: () => void;
 }
 
+/**
+ * 自定义加密存储引擎
+ * 将 Zustand 的 persist 存储引擎替换为加密版本
+ */
+const encryptedStorage = {
+  getItem: (name: string): string | null => {
+    return secureStorage.getItem(name);
+  },
+  setItem: (name: string, value: string): void => {
+    secureStorage.setItem(name, value);
+  },
+  removeItem: (name: string): void => {
+    secureStorage.removeItem(name);
+  }
+};
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -48,7 +65,8 @@ export const useAuthStore = create<AuthState>()(
       })
     }),
     {
-      name: 'auth-storage'
+      name: 'auth-storage',
+      storage: createJSONStorage(() => encryptedStorage)
     }
   )
 );
