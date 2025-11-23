@@ -1,0 +1,99 @@
+import React, { useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { Spin } from 'antd';
+import { useAuthStore } from '../stores/authStore';
+import { useRouterStore } from '../stores/routerStore';
+import { getToken } from '../utils/auth';
+import { getInfo, getRouters } from '../services/authService';
+
+interface AuthGuardProps {
+  children: React.ReactNode;
+}
+
+/**
+ * 路由守卫组件
+ */
+const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
+  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  
+  const { token, roles, setUserInfo, setRoles, setPermissions } = useAuthStore();
+  const { setRoutes } = useRouterStore();
+
+  // 白名单路由(不需要登录)
+  const whiteList = ['/login', '/auth/bind', '/register'];
+
+  useEffect(() => {
+    checkAuth();
+  }, [location.pathname]);
+
+  const checkAuth = async () => {
+    const currentToken = token || getToken();
+
+    // 无Token且不在白名单
+    if (!currentToken) {
+      if (whiteList.includes(location.pathname)) {
+        setAuthenticated(true);
+        setLoading(false);
+      } else {
+        setAuthenticated(false);
+        setLoading(false);
+      }
+      return;
+    }
+
+    // 有Token但未加载用户信息
+    if (roles.length === 0) {
+      try {
+        // 获取用户信息
+        const userInfo = await getInfo();
+        setUserInfo(userInfo.user);
+        setRoles(userInfo.roles);
+        setPermissions(userInfo.permissions);
+
+        // 获取动态路由
+        const routers = await getRouters();
+        setRoutes(routers);
+
+        setAuthenticated(true);
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+        setAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setAuthenticated(true);
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh' 
+      }}>
+        <Spin size="large" tip="加载中..." />
+      </div>
+    );
+  }
+
+  // 已登录访问登录页,重定向到首页
+  if (authenticated && location.pathname === '/login') {
+    return <Navigate to="/" replace />;
+  }
+
+  // 未登录访问受保护页面,重定向到登录页
+  if (!authenticated && !whiteList.includes(location.pathname)) {
+    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+export default AuthGuard;
+

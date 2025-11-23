@@ -2,6 +2,7 @@ import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig, type Ax
 import { message } from 'antd'
 import { ApiError } from './apiError'
 import type { ApiResponse } from './types'
+import { getToken } from '../utils/auth'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 
@@ -12,6 +13,20 @@ const httpClient: AxiosInstance = axios.create({
     'Content-Type': 'application/json'
   }
 })
+
+// 请求拦截器 - 添加Token
+httpClient.interceptors.request.use(
+  (config) => {
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+)
 
 const showErrorMessage = (error: ApiError) => {
   const traceInfo = error.traceId ? `（TraceId: ${error.traceId}）` : ''
@@ -43,9 +58,18 @@ const buildApiErrorFromResponse = (
   })
 }
 
+// 响应拦截器
 httpClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<ApiResponse<unknown>>) => {
+  async (error: AxiosError<ApiResponse<unknown>>) => {
+    // 401未授权 - 跳转登录
+    if (error.response?.status === 401) {
+      const { removeToken } = await import('../utils/auth');
+      removeToken();
+      window.location.href = '/login';
+      return Promise.reject(new ApiError('未登录或登录已过期', { status: 401 }));
+    }
+
     const apiError =
       error.code === AxiosError.ERR_NETWORK
         ? new ApiError('网络异常，请检查连接', { cause: error })

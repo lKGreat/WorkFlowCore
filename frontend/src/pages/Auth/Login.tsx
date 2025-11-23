@@ -9,7 +9,9 @@ import {
   AlipayOutlined,
   AppleOutlined
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuthStore } from '../../stores/authStore';
+import { setToken } from '../../utils/auth';
 import QrCodeLogin from './QrCodeLogin';
 import './Login.css';
 
@@ -27,7 +29,9 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [smsLoading, setSmsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const authStore = useAuthStore();
 
   // 获取图形验证码
   useEffect(() => {
@@ -73,9 +77,15 @@ const LoginPage: React.FC = () => {
 
       const result = await response.json();
       if (result.success) {
-        localStorage.setItem('token', result.data.token);
+        // 保存Token
+        setToken(result.data.token);
+        authStore.setToken(result.data.token);
+        
         message.success('登录成功');
-        navigate('/');
+        
+        // 获取redirect参数
+        const redirect = searchParams.get('redirect') || '/';
+        navigate(redirect);
       } else {
         message.error(result.message || '登录失败');
         fetchCaptcha(); // 刷新验证码
@@ -133,9 +143,15 @@ const LoginPage: React.FC = () => {
 
       const result = await response.json();
       if (result.success) {
-        localStorage.setItem('token', result.data.token);
+        // 保存Token
+        setToken(result.data.token);
+        authStore.setToken(result.data.token);
+        
         message.success('登录成功');
-        navigate('/');
+        
+        // 获取redirect参数
+        const redirect = searchParams.get('redirect') || '/';
+        navigate(redirect);
       } else {
         message.error(result.message || '登录失败');
       }
