@@ -135,7 +135,9 @@ public class WorkFlowCoreHttpApiModule : AbpModule
 
     private void ConfigureWorkflowCore(IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("Default");
+        // 使用独立的数据库文件，避免与 ABP 业务表冲突
+        var connectionString = configuration.GetConnectionString("WorkflowEngine") 
+                               ?? configuration.GetConnectionString("Default");
         services.AddWorkflow(x => x.UseSqlite(connectionString!, true));
     }
 
@@ -240,8 +242,6 @@ public class WorkFlowCoreHttpApiModule : AbpModule
         app.UseAuthorization();
         app.UseConfiguredEndpoints();
 
-        // Start WorkflowCore
-        var host = context.ServiceProvider.GetRequiredService<global::WorkflowCore.Interface.IWorkflowHost>();
-        host.Start();
+        // WorkflowCore 在 Program.cs 中启动，避免重复启动
     }
 }
