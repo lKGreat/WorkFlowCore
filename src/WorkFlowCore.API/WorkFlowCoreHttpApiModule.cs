@@ -97,17 +97,28 @@ public class WorkFlowCoreHttpApiModule : AbpModule
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!)),
                 ClockSkew = TimeSpan.Zero
             };
-        })
-        .AddWeixin(options =>
-        {
-            options.ClientId = configuration["Authentication:WeChat:AppId"]!;
-            options.ClientSecret = configuration["Authentication:WeChat:AppSecret"]!;
-        })
-        .AddQQ(options =>
-        {
-            options.ClientId = configuration["Authentication:QQ:AppId"]!;
-            options.ClientSecret = configuration["Authentication:QQ:AppKey"]!;
         });
+        
+        // 只在配置了 ClientId 时才添加第三方登录（开发环境可选）
+        var wechatAppId = configuration["Authentication:WeChat:AppId"];
+        if (!string.IsNullOrEmpty(wechatAppId))
+        {
+            services.AddAuthentication().AddWeixin(options =>
+            {
+                options.ClientId = wechatAppId;
+                options.ClientSecret = configuration["Authentication:WeChat:AppSecret"]!;
+            });
+        }
+        
+        var qqAppId = configuration["Authentication:QQ:AppId"];
+        if (!string.IsNullOrEmpty(qqAppId))
+        {
+            services.AddAuthentication().AddQQ(options =>
+            {
+                options.ClientId = qqAppId;
+                options.ClientSecret = configuration["Authentication:QQ:AppKey"]!;
+            });
+        }
 
         // 注册JWT服务
         if (jwtSettings.Exists())

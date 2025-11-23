@@ -14,7 +14,9 @@ using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using WorkFlowCore.Domain;
+using WorkFlowCore.Domain.Identity;
 using WorkFlowCore.Infrastructure.Data;
+using WorkFlowCore.Infrastructure.Repositories;
 using WorkFlowCore.Infrastructure.Storage;
 
 namespace WorkFlowCore.Infrastructure;
@@ -39,6 +41,9 @@ public class WorkFlowCoreEntityFrameworkCoreModule : AbpModule
         {
             /* Remove "includeAllEntities: true" to create default repositories only for aggregate roots */
             options.AddDefaultRepositories(includeAllEntities: true);
+
+            // 显式注册 AppUser 仓储，供 AuthController 等使用
+            options.AddRepository<AppUser, AppUserRepository>();
         });
 
         Configure<AbpDbContextOptions>(options =>

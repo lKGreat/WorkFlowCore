@@ -22,8 +22,7 @@ public class AuthController : BaseController
     private readonly ISmsCodeService _smsCodeService;
     private readonly IThirdPartyLoginService _thirdPartyLoginService;
     private readonly IQrCodeLoginService _qrCodeLoginService;
-    private readonly SignInManager<AppUser> _signInManager;
-    private readonly UserManager<AppUser> _userManager;
+    private readonly SignInManager<Volo.Abp.Identity.IdentityUser> _signInManager;
     private readonly IRepository<AppUser, Guid> _userRepository;
     private readonly JwtService _jwtService;
 
@@ -32,8 +31,7 @@ public class AuthController : BaseController
         ISmsCodeService smsCodeService,
         IThirdPartyLoginService thirdPartyLoginService,
         IQrCodeLoginService qrCodeLoginService,
-        SignInManager<AppUser> signInManager,
-        UserManager<AppUser> userManager,
+        SignInManager<Volo.Abp.Identity.IdentityUser> signInManager,
         IRepository<AppUser, Guid> userRepository,
         JwtService jwtService)
     {
@@ -42,7 +40,6 @@ public class AuthController : BaseController
         _thirdPartyLoginService = thirdPartyLoginService;
         _qrCodeLoginService = qrCodeLoginService;
         _signInManager = signInManager;
-        _userManager = userManager;
         _userRepository = userRepository;
         _jwtService = jwtService;
     }
@@ -93,7 +90,8 @@ public class AuthController : BaseController
 
         if (result.Succeeded)
         {
-            var user = await _userManager.FindByNameAsync(input.UserName);
+            var userQueryable = await _userRepository.GetQueryableAsync();
+            var user = userQueryable.FirstOrDefault(u => u.UserName == input.UserName);
             if (user == null)
             {
                 return ApiResponse<LoginResponse>.Fail("用户不存在").ToActionResult();
@@ -285,7 +283,8 @@ public class AuthController : BaseController
         // 如果已确认,生成Token
         if (result.Status == Domain.Common.QrCodeStatus.Confirmed && result.UserId.HasValue)
         {
-            var user = await _userManager.FindByIdAsync(result.UserId.Value.ToString());
+            var userQueryable = await _userRepository.GetQueryableAsync();
+            var user = userQueryable.FirstOrDefault(u => u.Id == result.UserId.Value);
             if (user != null)
             {
                 result.AccessToken = _jwtService.GenerateToken(user.Id, user.UserName!, user.TenantId ?? Guid.Empty);
@@ -316,7 +315,8 @@ public class AuthController : BaseController
     public async Task<ActionResult<ApiResponse<UserDto>>> GetUserInfo()
     {
         var userId = CurrentUser.Id!.Value;
-        var user = await _userManager.FindByIdAsync(userId.ToString());
+        var userQueryable = await _userRepository.GetQueryableAsync();
+        var user = userQueryable.FirstOrDefault(u => u.Id == userId);
 
         if (user == null)
         {
