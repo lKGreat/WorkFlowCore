@@ -124,14 +124,14 @@ public class WorkFlowCoreHttpApiModule : AbpModule
 
     private void ConfigureCaptcha(IServiceCollection services)
     {
-        // 配置 Lazy.Captcha
-        services.AddCaptcha(configuration =>
-        {
-            configuration.CodeLength = 4;
-            configuration.ExpirySeconds = 120;
-            configuration.IgnoreCase = true;
-            configuration.StoreageKeyPrefix = "captcha:";
-        });
+        // 配置 Lazy.Captcha (暂时注释,使用自定义实现)
+        // services.AddCaptcha(configuration =>
+        // {
+        //     configuration.CodeLength = 4;
+        //     configuration.ExpirySeconds = 120;
+        //     configuration.IgnoreCase = true;
+        //     configuration.StoreageKeyPrefix = "captcha:";
+        // });
     }
 
     private void ConfigureWorkflowCore(IServiceCollection services, IConfiguration configuration)
