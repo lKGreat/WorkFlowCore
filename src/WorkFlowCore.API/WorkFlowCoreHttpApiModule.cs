@@ -169,6 +169,12 @@ public class WorkFlowCoreHttpApiModule : AbpModule
                 return new BadRequestObjectResult(response);
             };
         });
+
+        // 注册操作日志过滤器
+        Configure<MvcOptions>(options =>
+        {
+            options.Filters.Add<API.Filters.OperationLogFilter>();
+        });
     }
 
     private void ConfigureAutoMapper(IServiceCollection services)
@@ -180,6 +186,9 @@ public class WorkFlowCoreHttpApiModule : AbpModule
     {
         // 注册HttpContextAccessor
         services.AddHttpContextAccessor();
+
+        // 配置分布式内存缓存(开发环境使用,生产环境应使用Redis)
+        services.AddDistributedMemoryCache();
 
         // 注册当前用户服务
         services.AddScoped<ICurrentUserService, CurrentUserService>();

@@ -24,9 +24,44 @@ public class JwtService
     }
 
     /// <summary>
-    /// 生成 JWT Token
+    /// 生成 JWT Token (long userId)
     /// </summary>
     public string GenerateToken(long userId, string userName, Guid tenantId, List<string>? roles = null)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim(ClaimTypes.Name, userName),
+            new Claim("TenantId", tenantId.ToString())
+        };
+
+        if (roles != null)
+        {
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+        }
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var expires = DateTime.UtcNow.AddMinutes(_expirationMinutes);
+
+        var token = new JwtSecurityToken(
+            issuer: _issuer,
+            audience: _audience,
+            claims: claims,
+            expires: expires,
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    /// <summary>
+    /// 生成 JWT Token (Guid userId)
+    /// </summary>
+    public string GenerateToken(Guid userId, string userName, Guid tenantId, List<string>? roles = null)
     {
         var claims = new List<Claim>
         {

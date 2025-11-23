@@ -18,7 +18,7 @@ public class ThirdPartyLoginResult
     /// <summary>
     /// 用户信息（已绑定时返回）
     /// </summary>
-    public object? User { get; set; }
+    public WorkFlowCore.Domain.Identity.AppUser? User { get; set; }
 
     /// <summary>
     /// 第三方用户信息（未绑定时返回）
@@ -29,6 +29,11 @@ public class ThirdPartyLoginResult
     /// 临时Token（用于绑定流程）
     /// </summary>
     public string? TempToken { get; set; }
+
+    /// <summary>
+    /// 访问令牌(已绑定)
+    /// </summary>
+    public string? AccessToken { get; set; }
 }
 
 /// <summary>
@@ -41,6 +46,9 @@ public class ThirdPartyUserInfo
     public string? UnionId { get; set; }
     public string? NickName { get; set; }
     public string? Avatar { get; set; }
+    public string? AccessToken { get; set; }
+    public string? RefreshToken { get; set; }
+    public DateTime? TokenExpireTime { get; set; }
 }
 
 /// <summary>

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.Identity;
 using WorkFlowCore.Application.Common;
@@ -60,7 +61,7 @@ public class AuthController : BaseController
     [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<object>>> SendSmsCode([FromBody] SendSmsCodeInput input)
     {
-        var result = await _smsCodeService.SendAsync(input.PhoneNumber, input.Type);
+        var result = await _smsCodeService.SendAsync(input.PhoneNumber, (Domain.Common.SmsCodeType)input.Type);
         return result
             ? ApiResponse<object>.Ok(null, "发送成功").ToActionResult()
             : ApiResponse<object>.Fail("发送失败").ToActionResult();
@@ -122,8 +123,10 @@ public class AuthController : BaseController
             return ApiResponse<LoginResponse>.Fail("验证码错误").ToActionResult();
         }
 
-        // 查找用户
-        var user = await _userManager.FindByPhoneNumberAsync(input.PhoneNumber);
+        // 查找用户 (ABP UserManager没有FindByPhoneNumberAsync,使用LINQ查询)
+        var users = await _userManager.GetUsersInRoleAsync("User"); // 或者使用其他方式获取所有用户
+        var user = users.FirstOrDefault(u => u.PhoneNumber == input.PhoneNumber);
+        
         if (user == null)
         {
             return ApiResponse<LoginResponse>.Fail("用户不存在").ToActionResult();

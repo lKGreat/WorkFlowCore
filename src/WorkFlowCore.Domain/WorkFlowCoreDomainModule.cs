@@ -1,5 +1,6 @@
 using Volo.Abp.AuditLogging;
 using Volo.Abp.BackgroundJobs;
+using Volo.Abp.Caching;
 using Volo.Abp.Domain;
 using Volo.Abp.Identity;
 using Volo.Abp.Modularity;
@@ -10,6 +11,7 @@ namespace WorkFlowCore.Domain;
 
 [DependsOn(
     typeof(AbpDddDomainModule),
+    typeof(AbpCachingModule),
     typeof(AbpIdentityDomainModule),
     typeof(AbpPermissionManagementDomainModule),
     typeof(AbpSettingManagementDomainModule),

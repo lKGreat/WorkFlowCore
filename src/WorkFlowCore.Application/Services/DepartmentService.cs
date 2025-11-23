@@ -45,8 +45,7 @@ public class DepartmentService : ApplicationService, IDepartmentService
         {
             Code = dto.Code,
             ParentId = dto.ParentId,
-            ManagerId = dto.ManagerId,
-            SortOrder = dto.SortOrder
+            OrderNum = dto.SortOrder
         };
 
         await _repository.InsertAsync(department);
@@ -71,11 +70,10 @@ public class DepartmentService : ApplicationService, IDepartmentService
             }
         }
 
-        department.Name = dto.Name;
+        department.DeptName = dto.Name;
         department.Code = dto.Code;
         department.ParentId = dto.ParentId;
-        department.ManagerId = dto.ManagerId;
-        department.SortOrder = dto.SortOrder;
+        department.OrderNum = dto.SortOrder;
 
         await _repository.UpdateAsync(department);
     }

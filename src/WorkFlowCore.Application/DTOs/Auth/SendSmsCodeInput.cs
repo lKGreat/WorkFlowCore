@@ -1,5 +1,3 @@
-using WorkFlowCore.Domain.Common;
-
 namespace WorkFlowCore.Application.DTOs.Auth;
 
 /// <summary>
@@ -13,8 +11,8 @@ public class SendSmsCodeInput
     public string PhoneNumber { get; set; } = string.Empty;
 
     /// <summary>
-    /// 短信类型
+    /// 短信类型 (0=登录, 1=注册, 2=重置密码, 3=绑定手机)
     /// </summary>
-    public SmsCodeType Type { get; set; }
+    public int Type { get; set; }
 }
 
