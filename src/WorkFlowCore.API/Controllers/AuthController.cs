@@ -109,7 +109,23 @@ public class AuthController : BaseController
             }).ToActionResult();
         }
 
-        return ApiResponse<LoginResponse>.Fail("登录失败").ToActionResult();
+        // 根据失败原因返回具体错误信息
+        if (result.IsLockedOut)
+        {
+            return ApiResponse<LoginResponse>.Fail("账号已被锁定，请稍后再试").ToActionResult();
+        }
+        
+        if (result.IsNotAllowed)
+        {
+            return ApiResponse<LoginResponse>.Fail("账号未激活或邮箱未确认").ToActionResult();
+        }
+        
+        if (result.RequiresTwoFactor)
+        {
+            return ApiResponse<LoginResponse>.Fail("需要双因素认证").ToActionResult();
+        }
+
+        return ApiResponse<LoginResponse>.Fail("用户名或密码错误").ToActionResult();
     }
 
     /// <summary>

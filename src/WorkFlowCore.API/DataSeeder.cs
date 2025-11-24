@@ -57,9 +57,11 @@ public static class DataSeeder
             
             if (result.Succeeded)
             {
-                // 设置邮箱已确认（通过 EF Core Entry API）
-                context.Entry(adminUser).Property(nameof(adminUser.EmailConfirmed)).CurrentValue = true;
-                await context.SaveChangesAsync();
+                // 设置用户为激活状态
+                await userManager.SetLockoutEnabledAsync(adminUser, true);
+                (adminUser as Volo.Abp.Identity.IdentityUser).SetEmailConfirmed(true);
+                (adminUser as Volo.Abp.Identity.IdentityUser).SetIsActive(true);
+                await userManager.UpdateAsync(adminUser);
                 
                 // 分配管理员角色
                 await userManager.AddToRoleAsync(adminUser, adminRoleName);
@@ -113,9 +115,11 @@ public static class DataSeeder
             
             if (result.Succeeded)
             {
-                // 设置邮箱已确认（通过 EF Core Entry API）
-                context.Entry(testUser).Property(nameof(testUser.EmailConfirmed)).CurrentValue = true;
-                await context.SaveChangesAsync();
+                // 设置用户为激活状态
+                await userManager.SetLockoutEnabledAsync(testUser, true);
+                (testUser as Volo.Abp.Identity.IdentityUser).SetEmailConfirmed(true);
+                (testUser as Volo.Abp.Identity.IdentityUser).SetIsActive(true);
+                await userManager.UpdateAsync(testUser);
                 
                 // 同步到业务 User 表
                 await appUserSyncService.SyncOnCreateAsync(testUser);

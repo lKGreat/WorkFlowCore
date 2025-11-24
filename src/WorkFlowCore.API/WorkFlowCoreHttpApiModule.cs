@@ -5,8 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IO;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
@@ -61,12 +59,19 @@ public class WorkFlowCoreHttpApiModule : AbpModule
 
     private void ConfigureJson(IServiceCollection services)
     {
-        // 配置 JSON 序列化使用 camelCase
-        services.Configure<JsonOptions>(options =>
-        {
-            options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-            options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        });
+        // 使用 Newtonsoft.Json 进行 JSON 序列化
+        services.AddControllers()
+            .AddNewtonsoftJson(options =>
+            {
+                // 使用 camelCase 命名策略
+                options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
+                // 忽略 null 值
+                options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+                // 日期格式
+                options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+                // 循环引用处理
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            });
     }
 
     private void ConfigureSwaggerServices(IServiceCollection services)
@@ -335,7 +340,7 @@ public class WorkFlowCoreHttpApiModule : AbpModule
                 timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             };
 
-            var json = JsonSerializer.Serialize(payload);
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(payload);
             File.AppendAllText(AgentLogPath, json + Environment.NewLine);
         }
         catch
