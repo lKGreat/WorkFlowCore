@@ -52,8 +52,8 @@ const LoginPage: React.FC = () => {
       const response = await httpClient.post<ApiResponse<{ token: string }>>('/auth/login', {
         userName: values.username,
         password: values.password,
-        captchaUuid: captcha?.uuid,
-        captchaCode: values.captchaCode,
+        captchaUuid: captcha?.uuid || '',
+        captchaCode: values.captchaCode || '',
         rememberMe: false
       });
 

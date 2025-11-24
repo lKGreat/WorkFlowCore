@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
@@ -45,6 +46,7 @@ public class WorkFlowCoreHttpApiModule : AbpModule
         var configuration = context.Services.GetConfiguration();
         var hostingEnvironment = context.Services.GetHostingEnvironment();
 
+        ConfigureJson(context.Services);
         ConfigureSwaggerServices(context.Services);
         ConfigureCors(context, configuration);
         ConfigureAuthentication(context.Services, configuration);
@@ -55,6 +57,16 @@ public class WorkFlowCoreHttpApiModule : AbpModule
         ConfigureAutoMapper(context.Services);
         ConfigureHttpLogging(context.Services, hostingEnvironment);
         ConfigureCustomServices(context.Services, configuration);
+    }
+
+    private void ConfigureJson(IServiceCollection services)
+    {
+        // 配置 JSON 序列化使用 camelCase
+        services.Configure<JsonOptions>(options =>
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        });
     }
 
     private void ConfigureSwaggerServices(IServiceCollection services)
