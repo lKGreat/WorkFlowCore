@@ -62,16 +62,12 @@ try
         Log.Information("数据库迁移已完成");
     }
 
-    // 初始化测试数据
+    // 初始化所有基础数据
     using (var scope = app.Services.CreateScope())
     {
         var context = scope.ServiceProvider.GetRequiredService<WorkFlowDbContext>();
-        await DbInitializer.InitializeAsync(context);
-        Log.Information("测试数据已初始化");
-        
-        // 初始化默认管理员账号
-        await DataSeeder.SeedAdminUserAsync(scope.ServiceProvider, context);
-        Log.Information("默认用户数据已初始化");
+        await DbInitializer.InitializeAllAsync(context, scope.ServiceProvider);
+        Log.Information("基础数据初始化完成");
     }
 
     // 启动WorkflowCore（使用独立数据库 workflow_engine.db，自动创建表）

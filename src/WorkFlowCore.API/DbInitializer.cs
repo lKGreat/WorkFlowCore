@@ -45,5 +45,38 @@ public static class DbInitializer
             Console.WriteLine($"  - 租户名称: {existingTenant.Name}");
         }
     }
+
+    /// <summary>
+    /// 初始化所有基础数据
+    /// </summary>
+    public static async Task InitializeAllAsync(WorkFlowDbContext context, IServiceProvider serviceProvider)
+    {
+        Console.WriteLine("\n开始初始化基础数据...");
+        Console.WriteLine(new string('=', 60));
+
+        // 1. 初始化租户
+        await InitializeAsync(context);
+
+        // 2. 初始化部门
+        await DataSeeder.SeedDepartmentsAsync(context);
+
+        // 3. 初始化业务角色
+        await DataSeeder.SeedRolesAsync(context);
+
+        // 4. 初始化用户（包含ABP角色创建）
+        await DataSeeder.SeedAdminUserAsync(serviceProvider, context);
+
+        // 5. 初始化菜单
+        await DataSeeder.SeedMenusAsync(context, serviceProvider);
+
+        // 6. 初始化字典
+        await DataSeeder.SeedDictTypesAsync(context);
+
+        // 7. 初始化系统配置
+        await DataSeeder.SeedSystemConfigsAsync(context);
+
+        Console.WriteLine(new string('=', 60));
+        Console.WriteLine("基础数据初始化完成！\n");
+    }
 }
 
