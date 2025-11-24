@@ -11,7 +11,9 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5229',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        // 不重写路径，保持 /api 前缀
+        rewrite: undefined
       }
     }
   },

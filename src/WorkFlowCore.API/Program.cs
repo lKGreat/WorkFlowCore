@@ -68,6 +68,10 @@ try
         var context = scope.ServiceProvider.GetRequiredService<WorkFlowDbContext>();
         await DbInitializer.InitializeAsync(context);
         Log.Information("测试数据已初始化");
+        
+        // 初始化默认管理员账号
+        await DataSeeder.SeedAdminUserAsync(scope.ServiceProvider, context);
+        Log.Information("默认用户数据已初始化");
     }
 
     // 启动WorkflowCore（使用独立数据库 workflow_engine.db，自动创建表）

@@ -25,7 +25,7 @@ const ThirdPartyBind: React.FC = () => {
     setLoading(true);
     try {
       // 先登录获取用户信息
-      const loginResponse = await fetch('/api/auth/login', {
+      const loginResponse = await fetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -43,7 +43,7 @@ const ThirdPartyBind: React.FC = () => {
       const token = loginResult.data.token;
 
       // 绑定第三方账号
-      const bindResponse = await fetch(`/api/auth/oauth/${provider}/bind`, {
+      const bindResponse = await fetch(`/auth/oauth/${provider}/bind`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

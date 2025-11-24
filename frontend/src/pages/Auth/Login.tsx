@@ -36,7 +36,7 @@ const LoginPage: React.FC = () => {
 
   const fetchCaptcha = async () => {
     try {
-      const response = await httpClient.get<ApiResponse<CaptchaInfo>>('/api/auth/captcha');
+      const response = await httpClient.get<ApiResponse<CaptchaInfo>>('/auth/captcha');
       if (response.data.success && response.data.data) {
         setCaptcha(response.data.data);
       }
@@ -49,7 +49,7 @@ const LoginPage: React.FC = () => {
   const handleUsernameLogin = async (values: any) => {
     setLoading(true);
     try {
-      const response = await httpClient.post<ApiResponse<{ token: string }>>('/api/auth/login', {
+      const response = await httpClient.post<ApiResponse<{ token: string }>>('/auth/login', {
         userName: values.username,
         password: values.password,
         captchaUuid: captcha?.uuid,
@@ -87,7 +87,7 @@ const LoginPage: React.FC = () => {
 
     setSmsLoading(true);
     try {
-      const response = await httpClient.post<ApiResponse<void>>('/api/auth/sms/send', {
+      const response = await httpClient.post<ApiResponse<void>>('/auth/sms/send', {
         phoneNumber: phone,
         type: 0 // Login
       });
@@ -108,7 +108,7 @@ const LoginPage: React.FC = () => {
   const handlePhoneLogin = async (values: any) => {
     setLoading(true);
     try {
-      const response = await httpClient.post<ApiResponse<{ token: string }>>('/api/auth/phone-login', {
+      const response = await httpClient.post<ApiResponse<{ token: string }>>('/auth/phone-login', {
         phoneNumber: values.phone,
         code: values.smsCode
       });
@@ -135,7 +135,7 @@ const LoginPage: React.FC = () => {
   const handleThirdPartyLogin = async (provider: string) => {
     try {
       const response = await httpClient.get<ApiResponse<string>>(
-        `/api/auth/oauth/${provider}/authorize?redirectUrl=${encodeURIComponent(window.location.origin + '/auth/callback')}`
+        `/auth/oauth/${provider}/authorize?redirectUrl=${encodeURIComponent(window.location.origin + '/auth/callback')}`
       );
       if (response.data.success && response.data.data) {
         window.location.href = response.data.data;

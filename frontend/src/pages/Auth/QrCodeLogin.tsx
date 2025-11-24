@@ -26,7 +26,7 @@ const QrCodeLogin: React.FC = () => {
 
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`/api/auth/qrcode/poll?uuid=${qrInfo.uuid}`);
+        const response = await fetch(`/auth/qrcode/poll?uuid=${qrInfo.uuid}`);
         const result = await response.json();
 
         if (result.success) {
@@ -53,7 +53,7 @@ const QrCodeLogin: React.FC = () => {
   const generateQrCode = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/auth/qrcode/generate?deviceId=${Math.random().toString(36).substring(7)}`);
+      const response = await fetch(`/auth/qrcode/generate?deviceId=${Math.random().toString(36).substring(7)}`);
       const result = await response.json();
 
       if (result.success) {
