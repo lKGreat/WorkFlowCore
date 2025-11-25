@@ -3,12 +3,17 @@ import { Form, Input, Button, Card, message, Space, Avatar } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+type ThirdPartyUser = {
+  avatar: string;
+  nickname: string;
+};
+
 const ThirdPartyBind: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [thirdPartyInfo, setThirdPartyInfo] = useState<any>();
+  const [thirdPartyInfo, setThirdPartyInfo] = useState<ThirdPartyUser>();
 
   const provider = searchParams.get('provider');
   const tempToken = searchParams.get('token');
@@ -21,7 +26,7 @@ const ThirdPartyBind: React.FC = () => {
     });
   }, [tempToken]);
 
-  const handleBind = async (values: any) => {
+  const handleBind = async (values: { username: string; password: string }) => {
     setLoading(true);
     try {
       // 先登录获取用户信息
@@ -60,7 +65,7 @@ const ThirdPartyBind: React.FC = () => {
       } else {
         message.error(bindResult.message || '绑定失败');
       }
-    } catch (error) {
+    } catch {
       message.error('绑定失败,请稍后重试');
     } finally {
       setLoading(false);
@@ -124,4 +129,3 @@ const ThirdPartyBind: React.FC = () => {
 };
 
 export default ThirdPartyBind;
-

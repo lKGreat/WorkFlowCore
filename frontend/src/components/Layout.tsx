@@ -2,12 +2,25 @@ import React from 'react';
 import { Layout as AntLayout, Menu, Dropdown, Avatar, Space, message } from 'antd';
 import { FileTextOutlined, ApartmentOutlined, CloudUploadOutlined, UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import type { MenuProps } from 'antd';
 import { useAuthStore } from '../stores/authStore';
 import { useRouterStore } from '../stores/routerStore';
 import { authService } from '../features/auth/services/authService';
 import { removeToken } from '../utils/auth';
 
 const { Header, Sider, Content } = AntLayout;
+
+type RouteConfig = {
+  path: string;
+  hidden?: boolean;
+  meta?: {
+    title?: string;
+    icon?: string;
+  };
+  children?: RouteConfig[];
+};
+
+type MenuItem = Required<MenuProps>['items'][number];
 
 export const Layout: React.FC = () => {
   const navigate = useNavigate();
@@ -16,26 +29,24 @@ export const Layout: React.FC = () => {
   const { routes, clearRoutes } = useRouterStore();
 
   // 动态菜单（从路由配置生成）
-  const buildMenuItems = (routerConfigs: any[]): any[] => {
+  const buildMenuItems = (routerConfigs: RouteConfig[]): MenuItem[] => {
     return routerConfigs
       .filter(r => !r.hidden && r.meta?.title)
       .map(route => {
-        const item: any = {
+        const item: MenuItem = {
           key: route.path,
           label: route.meta?.title,
-          icon: getMenuIcon(route.meta?.icon)
+          icon: getMenuIcon(route.meta?.icon),
+          children: route.children && route.children.length > 0 
+            ? buildMenuItems(route.children) 
+            : undefined
         };
-
-        if (route.children && route.children.length > 0) {
-          item.children = buildMenuItems(route.children);
-        }
-
         return item;
       });
   };
 
-  const getMenuIcon = (iconName?: string) => {
-    const iconMap: any = {
+  const getMenuIcon = (iconName?: string): React.ReactNode => {
+    const iconMap: Record<string, React.ReactNode> = {
       'process': <FileTextOutlined />,
       'instance': <ApartmentOutlined />,
       'upload': <CloudUploadOutlined />,
@@ -46,8 +57,8 @@ export const Layout: React.FC = () => {
   };
 
   // 使用动态路由或默认菜单
-  const menuItems = routes && routes.length > 0 
-    ? buildMenuItems(routes)
+  const menuItems: MenuItem[] = routes && routes.length > 0 
+    ? buildMenuItems(routes as RouteConfig[])
     : [
         { key: '/', icon: <FileTextOutlined />, label: '流程定义' },
         { key: '/instances', icon: <ApartmentOutlined />, label: '流程实例' },
@@ -73,7 +84,7 @@ export const Layout: React.FC = () => {
     }
   };
 
-  const userMenuItems = [
+  const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
       icon: <UserOutlined />,
@@ -87,7 +98,7 @@ export const Layout: React.FC = () => {
       onClick: () => navigate('/user/settings')
     },
     {
-      type: 'divider' as const
+      type: 'divider'
     },
     {
       key: 'logout',
@@ -95,7 +106,7 @@ export const Layout: React.FC = () => {
       label: '退出登录',
       onClick: handleLogout
     }
-  ] as any;
+  ];
 
   const handleMenuClick = (key: string) => {
     navigate(key);
@@ -163,4 +174,3 @@ export const Layout: React.FC = () => {
     </AntLayout>
   );
 };
-

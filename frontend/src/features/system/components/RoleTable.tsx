@@ -10,7 +10,7 @@ type RoleTableProps = {
   pagination: TablePaginationConfig;
   onPageChange: (page: number, pageSize: number) => void;
   onEdit: (record: RoleListItem) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 };
 
 export function RoleTable({
@@ -22,64 +22,54 @@ export function RoleTable({
   onDelete,
 }: RoleTableProps) {
   const handleDelete = (record: RoleListItem) => {
-    if (record.isDefault) {
-      return;
-    }
     showDeleteConfirm(
-      () => onDelete(record.id),
-      `角色 "${record.name}"`
+      () => onDelete(record.roleId),
+      `角色 "${record.roleName}"`
     );
   };
 
   const columns: ColumnsType<RoleListItem> = [
     {
       title: '角色名称',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'roleName',
+      key: 'roleName',
       width: 150,
       fixed: 'left',
     },
     {
-      title: '角色代码',
-      dataIndex: 'code',
-      key: 'code',
+      title: '角色标识',
+      dataIndex: 'roleKey',
+      key: 'roleKey',
       width: 150,
     },
     {
-      title: '描述',
-      dataIndex: 'description',
-      key: 'description',
+      title: '排序',
+      dataIndex: 'roleSort',
+      key: 'roleSort',
+      width: 80,
+    },
+    {
+      title: '备注',
+      dataIndex: 'remark',
+      key: 'remark',
       ellipsis: true,
       render: (text?: string) => text || '-',
     },
     {
-      title: '权限数量',
-      dataIndex: 'permissions',
-      key: 'permissions',
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
       width: 100,
-      render: (permissions: string[]) => permissions.length,
-    },
-    {
-      title: '用户数量',
-      dataIndex: 'userCount',
-      key: 'userCount',
-      width: 100,
-    },
-    {
-      title: '类型',
-      dataIndex: 'isDefault',
-      key: 'isDefault',
-      width: 100,
-      render: (isDefault: boolean) => (
-        <Tag color={isDefault ? 'gold' : 'default'}>
-          {isDefault ? '系统' : '自定义'}
+      render: (status: string) => (
+        <Tag color={status === '0' ? 'green' : 'red'}>
+          {status === '0' ? '正常' : '停用'}
         </Tag>
       ),
     },
     {
       title: '创建时间',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      dataIndex: 'creationTime',
+      key: 'creationTime',
       width: 180,
       render: (date: string) => new Date(date).toLocaleString('zh-CN'),
     },
@@ -98,17 +88,15 @@ export function RoleTable({
           >
             编辑
           </Button>
-          {!record.isDefault && (
-            <Button
-              type="link"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record)}
-            >
-              删除
-            </Button>
-          )}
+          <Button
+            type="link"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record)}
+          >
+            删除
+          </Button>
         </Space>
       ),
     },
@@ -118,7 +106,7 @@ export function RoleTable({
     <Table
       columns={columns}
       dataSource={data}
-      rowKey="id"
+      rowKey="roleId"
       loading={loading}
       pagination={{
         ...pagination,
@@ -126,8 +114,7 @@ export function RoleTable({
         showTotal: (total) => `共 ${total} 条`,
         onChange: onPageChange,
       }}
-      scroll={{ x: 1400 }}
+      scroll={{ x: 1200 }}
     />
   );
 }
-

@@ -1,4 +1,4 @@
-import { httpClient } from '@/api/httpClient';
+import { request } from '@/api';
 import type {
   LoginRequest,
   LoginResponse,
@@ -18,35 +18,41 @@ export const authService = {
    * 用户名密码登录
    */
   async login(data: LoginRequest): Promise<LoginResponse> {
-    const response = await httpClient.post<LoginResponse>(`${BASE_URL}/login`, data);
-    return response.data;
+    return request<LoginResponse>({
+      method: 'POST',
+      url: `${BASE_URL}/login`,
+      data,
+    });
   },
 
   /**
    * 登出
    */
   async logout(): Promise<void> {
-    await httpClient.post(`${BASE_URL}/logout`);
+    return request<void>({
+      method: 'POST',
+      url: `${BASE_URL}/logout`,
+    });
   },
 
   /**
    * 生成二维码
    */
   async generateQrCode(): Promise<{ qrCodeId: string; qrCodeUrl: string }> {
-    const response = await httpClient.post<{ qrCodeId: string; qrCodeUrl: string }>(
-      `${BASE_URL}/qrcode/generate`
-    );
-    return response.data;
+    return request<{ qrCodeId: string; qrCodeUrl: string }>({
+      method: 'POST',
+      url: `${BASE_URL}/qrcode/generate`,
+    });
   },
 
   /**
    * 轮询二维码登录状态
    */
   async pollQrCodeStatus(qrCodeId: string): Promise<QrCodeLoginPollResponse> {
-    const response = await httpClient.get<QrCodeLoginPollResponse>(
-      `${BASE_URL}/qrcode/poll/${qrCodeId}`
-    );
-    return response.data;
+    return request<QrCodeLoginPollResponse>({
+      method: 'GET',
+      url: `${BASE_URL}/qrcode/poll/${qrCodeId}`,
+    });
   },
 
   /**
@@ -60,29 +66,31 @@ export const authService = {
    * 第三方登录回调绑定
    */
   async bindThirdParty(data: ThirdPartyBindRequest): Promise<LoginResponse> {
-    const response = await httpClient.post<LoginResponse>(
-      `${BASE_URL}/third-party/bind`,
-      data
-    );
-    return response.data;
+    return request<LoginResponse>({
+      method: 'POST',
+      url: `${BASE_URL}/third-party/bind`,
+      data,
+    });
   },
 
   /**
    * 刷新令牌
    */
   async refreshToken(data: RefreshTokenRequest): Promise<RefreshTokenResponse> {
-    const response = await httpClient.post<RefreshTokenResponse>(
-      `${BASE_URL}/refresh`,
-      data
-    );
-    return response.data;
+    return request<RefreshTokenResponse>({
+      method: 'POST',
+      url: `${BASE_URL}/refresh`,
+      data,
+    });
   },
 
   /**
    * 获取当前用户信息
    */
   async getCurrentUser(): Promise<LoginResponse['user']> {
-    const response = await httpClient.get<LoginResponse['user']>(`${BASE_URL}/me`);
-    return response.data;
+    return request<LoginResponse['user']>({
+      method: 'GET',
+      url: `${BASE_URL}/me`,
+    });
   },
 };

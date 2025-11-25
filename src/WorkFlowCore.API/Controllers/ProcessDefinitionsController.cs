@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WorkFlowCore.Application.Common;
+using WorkFlowCore.Application.Common.Exceptions;
 using WorkFlowCore.Application.DTOs;
 using WorkFlowCore.Application.Services;
 using WorkFlowCore.Domain.Common;
@@ -28,15 +29,8 @@ public class ProcessDefinitionsController : BaseController
     [HttpPost]
     public async Task<ActionResult<ApiResponse<ProcessDefinitionDto>>> Create([FromBody] CreateProcessDefinitionRequest request)
     {
-        try
-        {
-            var result = await _processDefinitionService.CreateAsync(request, CurrentTenantId);
-            return ApiResponse<ProcessDefinitionDto>.Ok(result, "流程定义创建成功").ToActionResult();
-        }
-        catch (Exception ex)
-        {
-            return ApiResponse<ProcessDefinitionDto>.Fail($"创建失败: {ex.Message}").ToActionResult();
-        }
+        var result = await _processDefinitionService.CreateAsync(request, CurrentTenantId);
+        return ApiResponse<ProcessDefinitionDto>.Ok(result, "流程定义创建成功").ToActionResult();
     }
 
     /// <summary>
@@ -52,16 +46,9 @@ public class ProcessDefinitionsController : BaseController
         [FromBody] UpdateProcessDefinitionRequest request,
         [FromQuery] bool createNewVersion = false)
     {
-        try
-        {
-            var result = await _processDefinitionService.UpdateAsync(id, request, CurrentTenantId, createNewVersion);
-            var message = createNewVersion ? "新版本创建成功" : "流程定义更新成功";
-            return ApiResponse<ProcessDefinitionDto>.Ok(result, message).ToActionResult();
-        }
-        catch (Exception ex)
-        {
-            return ApiResponse<ProcessDefinitionDto>.Fail($"更新失败: {ex.Message}").ToActionResult();
-        }
+        var result = await _processDefinitionService.UpdateAsync(id, request, CurrentTenantId, createNewVersion);
+        var message = createNewVersion ? "新版本创建成功" : "流程定义更新成功";
+        return ApiResponse<ProcessDefinitionDto>.Ok(result, message).ToActionResult();
     }
 
     /// <summary>
@@ -72,15 +59,8 @@ public class ProcessDefinitionsController : BaseController
     [HttpDelete("{id}")]
     public async Task<ActionResult<ApiResponse>> Delete(long id)
     {
-        try
-        {
-            await _processDefinitionService.DeleteAsync(id, CurrentTenantId);
-            return ApiResponse.Ok("流程定义删除成功").ToActionResult();
-        }
-        catch (Exception ex)
-        {
-            return ApiResponse.Fail($"删除失败: {ex.Message}").ToActionResult();
-        }
+        await _processDefinitionService.DeleteAsync(id, CurrentTenantId);
+        return ApiResponse.Ok("流程定义删除成功").ToActionResult();
     }
 
     /// <summary>
@@ -91,19 +71,12 @@ public class ProcessDefinitionsController : BaseController
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<ProcessDefinitionDto>>> GetById(long id)
     {
-        try
+        var result = await _processDefinitionService.GetByIdAsync(id, CurrentTenantId);
+        if (result == null)
         {
-            var result = await _processDefinitionService.GetByIdAsync(id, CurrentTenantId);
-            if (result == null)
-            {
-                return ApiResponse<ProcessDefinitionDto>.Fail("流程定义不存在", "NOT_FOUND").ToActionResult();
-            }
-            return ApiResponse<ProcessDefinitionDto>.Ok(result).ToActionResult();
+            throw new NotFoundException("流程定义不存在");
         }
-        catch (Exception ex)
-        {
-            return ApiResponse<ProcessDefinitionDto>.Fail($"查询失败: {ex.Message}").ToActionResult();
-        }
+        return ApiResponse<ProcessDefinitionDto>.Ok(result).ToActionResult();
     }
 
     /// <summary>
@@ -114,19 +87,12 @@ public class ProcessDefinitionsController : BaseController
     [HttpGet("by-key/{key}/latest")]
     public async Task<ActionResult<ApiResponse<ProcessDefinitionDto>>> GetLatestVersion(string key)
     {
-        try
+        var result = await _processDefinitionService.GetLatestVersionAsync(key, CurrentTenantId);
+        if (result == null)
         {
-            var result = await _processDefinitionService.GetLatestVersionAsync(key, CurrentTenantId);
-            if (result == null)
-            {
-                return ApiResponse<ProcessDefinitionDto>.Fail("流程定义不存在", "NOT_FOUND").ToActionResult();
-            }
-            return ApiResponse<ProcessDefinitionDto>.Ok(result).ToActionResult();
+            throw new NotFoundException("流程定义不存在");
         }
-        catch (Exception ex)
-        {
-            return ApiResponse<ProcessDefinitionDto>.Fail($"查询失败: {ex.Message}").ToActionResult();
-        }
+        return ApiResponse<ProcessDefinitionDto>.Ok(result).ToActionResult();
     }
 
     /// <summary>
@@ -137,15 +103,8 @@ public class ProcessDefinitionsController : BaseController
     [HttpGet("by-key/{key}/versions")]
     public async Task<ActionResult<ApiResponse<List<ProcessDefinitionVersionDto>>>> GetVersionHistory(string key)
     {
-        try
-        {
-            var result = await _processDefinitionService.GetVersionHistoryAsync(key, CurrentTenantId);
-            return ApiResponse<List<ProcessDefinitionVersionDto>>.Ok(result).ToActionResult();
-        }
-        catch (Exception ex)
-        {
-            return ApiResponse<List<ProcessDefinitionVersionDto>>.Fail($"查询失败: {ex.Message}").ToActionResult();
-        }
+        var result = await _processDefinitionService.GetVersionHistoryAsync(key, CurrentTenantId);
+        return ApiResponse<List<ProcessDefinitionVersionDto>>.Ok(result).ToActionResult();
     }
 
     /// <summary>
@@ -159,16 +118,8 @@ public class ProcessDefinitionsController : BaseController
         [FromQuery] int pageIndex = 1,
         [FromQuery] int pageSize = 10)
     {
-        try
-        {
-            var request = new PagedRequest { PageIndex = pageIndex, PageSize = pageSize };
-            var result = await _processDefinitionService.GetPagedAsync(request, CurrentTenantId);
-            return ApiResponse<PagedResponse<ProcessDefinitionListDto>>.Ok(result).ToActionResult();
-        }
-        catch (Exception ex)
-        {
-            return ApiResponse<PagedResponse<ProcessDefinitionListDto>>.Fail($"查询失败: {ex.Message}").ToActionResult();
-        }
+        var request = new PagedRequest { PageIndex = pageIndex, PageSize = pageSize };
+        var result = await _processDefinitionService.GetPagedAsync(request, CurrentTenantId);
+        return ApiResponse<PagedResponse<ProcessDefinitionListDto>>.Ok(result).ToActionResult();
     }
 }
-

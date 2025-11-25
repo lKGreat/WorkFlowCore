@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Modal, Form, Input, Select, message } from 'antd';
 import type { UserListDto } from '../../types';
 import { userService } from '../../services/userService';
@@ -16,9 +16,37 @@ const UserForm: React.FC<UserFormProps> = ({ visible, editingUser, onCancel, onS
   const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
   const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
 
+  const loadOptions = useCallback(async () => {
+    // TODO: 实际调用API获取角色和部门
+    setRoles([
+      { id: 'role1', name: '管理员' },
+      { id: 'role2', name: '普通用户' }
+    ]);
+    setDepartments([
+      { id: 1, name: '研发部' },
+      { id: 2, name: '市场部' }
+    ]);
+  }, []);
+
+  const loadUserDetail = useCallback(async (userId: string) => {
+    try {
+      const user = await userService.getUser(userId);
+      form.setFieldsValue({
+        userName: user.userName,
+        nickName: user.nickName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        departmentId: user.departmentId,
+        roleIds: user.roles || [],
+        status: user.status
+      });
+    } catch {
+      message.error('加载用户信息失败');
+    }
+  }, [form]);
+
   useEffect(() => {
     if (visible) {
-      // TODO: 加载角色和部门选项
       loadOptions();
       
       if (editingUser) {
@@ -29,37 +57,7 @@ const UserForm: React.FC<UserFormProps> = ({ visible, editingUser, onCancel, onS
         form.resetFields();
       }
     }
-  }, [visible, editingUser]);
-
-  const loadOptions = async () => {
-    // TODO: 实际调用API获取角色和部门
-    setRoles([
-      { id: 'role1', name: '管理员' },
-      { id: 'role2', name: '普通用户' }
-    ]);
-    setDepartments([
-      { id: 1, name: '研发部' },
-      { id: 2, name: '市场部' }
-    ]);
-  };
-
-  const loadUserDetail = async (userId: string) => {
-    try {
-      const user = await userService.getUser(userId);
-      // TODO: 获取用户的角色ID列表
-      form.setFieldsValue({
-        userName: user.username,
-        nickName: user.fullName,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        departmentId: user.departmentId,
-        roleIds: [],
-        status: user.isActive ? '0' : '1'
-      });
-    } catch (error) {
-      message.error('加载用户信息失败');
-    }
-  };
+  }, [visible, editingUser, form, loadOptions, loadUserDetail]);
 
   const handleSubmit = async () => {
     try {
@@ -69,32 +67,34 @@ const UserForm: React.FC<UserFormProps> = ({ visible, editingUser, onCancel, onS
       if (editingUser) {
         // 更新
         const updateData = {
+          nickName: values.nickName,
           email: values.email,
-          fullName: values.nickName,
           phoneNumber: values.phoneNumber,
           departmentId: values.departmentId,
           roleIds: values.roleIds || [],
-          isActive: values.status === '0'
+          status: values.status
         };
         await userService.updateUser(editingUser.userId, updateData);
         message.success('更新成功');
       } else {
         // 创建
         const createData = {
-          username: values.userName,
+          userName: values.userName,
+          nickName: values.nickName,
           email: values.email,
           password: values.password || '123456',
-          fullName: values.nickName,
           phoneNumber: values.phoneNumber,
           departmentId: values.departmentId,
-          roleIds: values.roleIds || []
+          roleIds: values.roleIds || [],
+          status: values.status || '0'
         };
         await userService.createUser(createData);
         message.success('创建成功');
       }
 
       onSuccess();
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { errorFields?: unknown };
       if (error.errorFields) {
         message.error('请填写必填项');
       } else {
@@ -204,4 +204,3 @@ const UserForm: React.FC<UserFormProps> = ({ visible, editingUser, onCancel, onS
 };
 
 export default UserForm;
-

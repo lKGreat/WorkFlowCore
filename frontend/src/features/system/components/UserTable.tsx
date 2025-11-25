@@ -1,4 +1,4 @@
-import { Table, Button, Space, Tag, Switch } from 'antd';
+import { Table, Button, Space, Switch } from 'antd';
 import { EditOutlined, DeleteOutlined, KeyOutlined } from '@ant-design/icons';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import type { UserListItem } from '../types';
@@ -10,9 +10,9 @@ type UserTableProps = {
   pagination: TablePaginationConfig;
   onPageChange: (page: number, pageSize: number) => void;
   onEdit: (record: UserListItem) => void;
-  onDelete: (id: number) => void;
-  onToggleStatus: (id: number, isActive: boolean) => void;
-  onResetPassword: (id: number) => void;
+  onDelete: (id: string) => void;
+  onToggleStatus: (id: string, status: string) => void;
+  onResetPassword: (id: string) => void;
 };
 
 export function UserTable({
@@ -27,23 +27,23 @@ export function UserTable({
 }: UserTableProps) {
   const handleDelete = (record: UserListItem) => {
     showDeleteConfirm(
-      () => onDelete(record.id),
-      `用户 "${record.fullName}"`
+      () => onDelete(record.userId),
+      `用户 "${record.nickName || record.userName}"`
     );
   };
 
   const columns: ColumnsType<UserListItem> = [
     {
       title: '用户名',
-      dataIndex: 'username',
-      key: 'username',
+      dataIndex: 'userName',
+      key: 'userName',
       width: 120,
       fixed: 'left',
     },
     {
-      title: '姓名',
-      dataIndex: 'fullName',
-      key: 'fullName',
+      title: '昵称',
+      dataIndex: 'nickName',
+      key: 'nickName',
       width: 120,
     },
     {
@@ -51,6 +51,7 @@ export function UserTable({
       dataIndex: 'email',
       key: 'email',
       width: 180,
+      render: (text?: string) => text || '-',
     },
     {
       title: '手机号',
@@ -67,29 +68,14 @@ export function UserTable({
       render: (text?: string) => text || '-',
     },
     {
-      title: '角色',
-      dataIndex: 'roles',
-      key: 'roles',
-      width: 200,
-      render: (roles: string[]) => (
-        <>
-          {roles.map((role) => (
-            <Tag key={role} color="blue">
-              {role}
-            </Tag>
-          ))}
-        </>
-      ),
-    },
-    {
       title: '状态',
-      dataIndex: 'isActive',
-      key: 'isActive',
+      dataIndex: 'status',
+      key: 'status',
       width: 100,
-      render: (isActive: boolean, record: UserListItem) => (
+      render: (status: string, record: UserListItem) => (
         <Switch
-          checked={isActive}
-          onChange={() => onToggleStatus(record.id, isActive)}
+          checked={status === '0'}
+          onChange={() => onToggleStatus(record.userId, status)}
           checkedChildren="启用"
           unCheckedChildren="禁用"
         />
@@ -122,7 +108,7 @@ export function UserTable({
             type="link"
             size="small"
             icon={<KeyOutlined />}
-            onClick={() => onResetPassword(record.id)}
+            onClick={() => onResetPassword(record.userId)}
           >
             重置密码
           </Button>
@@ -144,7 +130,7 @@ export function UserTable({
     <Table
       columns={columns}
       dataSource={data}
-      rowKey="id"
+      rowKey="userId"
       loading={loading}
       pagination={{
         ...pagination,
@@ -152,8 +138,7 @@ export function UserTable({
         showTotal: (total) => `共 ${total} 条`,
         onChange: onPageChange,
       }}
-      scroll={{ x: 1600 }}
+      scroll={{ x: 1400 }}
     />
   );
 }
-

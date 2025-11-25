@@ -85,7 +85,8 @@ export const ProcessDesigner: React.FC<ProcessDesignerProps> = ({ mode = 'create
       // }
       
       message.success('流程定义加载成功');
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string };
       message.error(error.message || '加载流程定义失败');
     }
   };
@@ -197,7 +198,8 @@ export const ProcessDesigner: React.FC<ProcessDesignerProps> = ({ mode = 'create
       }
       
       setIsModalOpen(false);
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string };
       message.error(error.message || '保存失败');
     } finally {
       setIsSaving(false);

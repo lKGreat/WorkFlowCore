@@ -31,6 +31,7 @@ export function useRoleList() {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.current, pagination.pageSize]);
 
   useEffect(() => {
@@ -45,9 +46,9 @@ export function useRoleList() {
     }));
   }, []);
 
-  const handleDelete = useCallback(async (id: number) => {
+  const handleDelete = useCallback(async (id: string) => {
     try {
-      await roleService.deleteRole(String(id));
+      await roleService.deleteRole(id);
       message.success('删除成功');
       loadData();
     } catch (error: unknown) {
@@ -65,4 +66,3 @@ export function useRoleList() {
     reload: loadData,
   };
 }
-

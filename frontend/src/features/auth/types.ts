@@ -1,53 +1,56 @@
 /**
- * 登录请求
+ * 登录请求（与后端 UsernameLoginInput 保持一致）
  */
 export type LoginRequest = {
-  username: string;
+  userName: string;
   password: string;
+  captchaUuid?: string;
   captchaCode?: string;
+  rememberMe?: boolean;
 };
 
 /**
- * 登录响应
+ * 登录响应（与后端 LoginResponse 保持一致）
  */
 export type LoginResponse = {
-  accessToken: string;
+  token: string;
   refreshToken: string;
-  expiresIn: number;
+  expiresAt: string;
   user: UserInfo;
 };
 
 /**
- * 用户信息
+ * 用户信息（与后端 UserDto 保持一致）
  */
 export type UserInfo = {
   id: number;
-  username: string;
+  userName: string;
+  realName: string;
   email: string;
-  fullName: string;
-  roles: string[];
-  permissions: string[];
+  phone: string;
+  isEnabled: boolean;
 };
 
 /**
- * 二维码登录状态
+ * 二维码登录状态（与后端 QrCodeStatus 保持一致）
  */
 export enum QrCodeLoginStatus {
-  Waiting = 'Waiting',
-  Scanning = 'Scanning',
+  Pending = 'Pending',
+  Scanned = 'Scanned',
   Confirmed = 'Confirmed',
   Expired = 'Expired',
   Cancelled = 'Cancelled',
 }
 
 /**
- * 二维码登录轮询响应
+ * 二维码登录轮询响应（与后端 QrCodeLoginResult 保持一致）
  */
 export type QrCodeLoginPollResponse = {
   status: QrCodeLoginStatus;
+  userId?: string;
   accessToken?: string;
   refreshToken?: string;
-  user?: UserInfo;
+  expiresIn?: number;
 };
 
 /**
@@ -79,7 +82,7 @@ export type RefreshTokenRequest = {
  * 刷新令牌响应
  */
 export type RefreshTokenResponse = {
-  accessToken: string;
+  token: string;
   refreshToken: string;
-  expiresIn: number;
+  expiresAt: string;
 };

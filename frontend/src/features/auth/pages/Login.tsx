@@ -11,15 +11,29 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../../stores/authStore';
-import { httpClient } from '../../../api/httpClient';
+import { request } from '../../../api';
 import QrCodeLogin from './QrCodeLogin';
 import './Login.css';
 
-interface CaptchaInfo {
+type CaptchaInfo = {
   uuid: string;
   imageBase64: string;
   expireTime: string;
-}
+};
+
+type LoginResult = {
+  token: string;
+  refreshToken: string;
+  expiresAt: string;
+  user: {
+    id: number;
+    userName: string;
+    realName: string;
+    email: string;
+    phone: string;
+    isEnabled: boolean;
+  };
+};
 
 const LoginPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'username' | 'phone' | 'qrcode'>('username');
@@ -35,43 +49,42 @@ const LoginPage: React.FC = () => {
 
   const fetchCaptcha = async () => {
     try {
-      const response = await httpClient.get<CaptchaInfo>('/auth/captcha');
-      if (response.data) {
-        setCaptcha(response.data);
-      }
+      const captchaInfo = await request<CaptchaInfo>({
+        method: 'GET',
+        url: '/api/auth/captcha',
+      });
+      setCaptcha(captchaInfo);
     } catch (error) {
-      message.error('获取验证码失败');
       console.error('获取验证码失败:', error);
     }
   };
 
-  const handleUsernameLogin = async (values: any) => {
+  const handleUsernameLogin = async (values: { username: string; password: string; captchaCode: string }) => {
     setLoading(true);
     try {
-      const response = await httpClient.post<{ token: string }>('/auth/login', {
-        userName: values.username,
-        password: values.password,
-        captchaUuid: captcha?.uuid || '',
-        captchaCode: values.captchaCode || '',
-        rememberMe: false
+      const result = await request<LoginResult>({
+        method: 'POST',
+        url: '/api/auth/login',
+        data: {
+          userName: values.username,
+          password: values.password,
+          captchaUuid: captcha?.uuid || '',
+          captchaCode: values.captchaCode || '',
+          rememberMe: false
+        },
       });
 
-      if (response.data.token) {
-        // 保存Token
-        authStore.setToken(response.data.token);
-        
+      if (result.token) {
+        authStore.setToken(result.token);
         message.success('登录成功');
-        
-        // 获取redirect参数
         const redirect = searchParams.get('redirect') || '/';
         navigate(redirect);
       } else {
         message.error('登录失败');
-        fetchCaptcha(); // 刷新验证码
+        fetchCaptcha();
       }
-    } catch (error) {
-      message.error('登录失败,请稍后重试');
-      fetchCaptcha(); // 刷新验证码
+    } catch {
+      fetchCaptcha();
     } finally {
       setLoading(false);
     }
@@ -86,42 +99,46 @@ const LoginPage: React.FC = () => {
 
     setSmsLoading(true);
     try {
-      await httpClient.post<void>('/auth/sms/send', {
-        phoneNumber: phone,
-        type: 0 // Login
+      await request<void>({
+        method: 'POST',
+        url: '/api/auth/sms/send',
+        data: {
+          phoneNumber: phone,
+          type: 0 // Login
+        },
       });
 
       message.success('验证码已发送');
       setCountdown(60);
-    } catch (error) {
-      message.error('发送失败,请稍后重试');
+    } catch {
+      // 错误已由 request 统一处理
     } finally {
       setSmsLoading(false);
     }
   };
 
-  const handlePhoneLogin = async (values: any) => {
+  const handlePhoneLogin = async (values: { phone: string; smsCode: string }) => {
     setLoading(true);
     try {
-      const response = await httpClient.post<{ token: string }>('/auth/phone-login', {
-        phoneNumber: values.phone,
-        code: values.smsCode
+      const result = await request<LoginResult>({
+        method: 'POST',
+        url: '/api/auth/phone-login',
+        data: {
+          phoneNumber: values.phone,
+          code: values.smsCode
+        },
       });
 
-      if (response.data.token) {
-        // 保存Token
-        authStore.setToken(response.data.token);
-        
+      if (result.token) {
+        authStore.setToken(result.token);
         message.success('登录成功');
-        
-        // 获取redirect参数
         const redirect = searchParams.get('redirect') || '/';
         navigate(redirect);
       } else {
         message.error('登录失败');
       }
-    } catch (error) {
-      message.error('登录失败,请稍后重试');
+    } catch {
+      // 错误已由 request 统一处理
     } finally {
       setLoading(false);
     }
@@ -129,16 +146,20 @@ const LoginPage: React.FC = () => {
 
   const handleThirdPartyLogin = async (provider: string) => {
     try {
-      const response = await httpClient.get<string>(
-        `/auth/oauth/${provider}/authorize?redirectUrl=${encodeURIComponent(window.location.origin + '/auth/callback')}`
-      );
-      if (response.data) {
-        window.location.href = response.data;
+      const authUrl = await request<string>({
+        method: 'GET',
+        url: `/api/auth/oauth/${provider}/authorize`,
+        params: {
+          redirectUrl: `${window.location.origin}/auth/callback`
+        },
+      });
+      if (authUrl) {
+        window.location.href = authUrl;
       } else {
         message.error('获取授权链接失败');
       }
-    } catch (error) {
-      message.error('第三方登录失败');
+    } catch {
+      // 错误已由 request 统一处理
     }
   };
 
@@ -316,4 +337,3 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
-

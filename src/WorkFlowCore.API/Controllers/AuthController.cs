@@ -1,15 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp.Identity;
 using WorkFlowCore.Application.Common;
 using WorkFlowCore.Application.DTOs;
 using WorkFlowCore.Application.DTOs.Auth;
 using WorkFlowCore.Application.Services.Auth;
 using WorkFlowCore.Domain.Identity;
 using WorkFlowCore.Infrastructure.Services;
-using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace WorkFlowCore.API.Controllers;
 
@@ -91,7 +90,7 @@ public class AuthController : BaseController
         if (result.Succeeded)
         {
             var userQueryable = await _userRepository.GetQueryableAsync();
-            var user = userQueryable.FirstOrDefault(u => u.UserName == input.UserName);
+            var user = await userQueryable.FirstOrDefaultAsync(u => u.UserName == input.UserName);
             if (user == null)
             {
                 return ApiResponse<LoginResponse>.Fail("用户不存在").ToActionResult();
@@ -143,7 +142,7 @@ public class AuthController : BaseController
 
         // 直接查询AppUser表 (使用ABP仓储)
         var userQueryable = await _userRepository.GetQueryableAsync();
-        var user = userQueryable.FirstOrDefault(u => u.PhoneNumber == input.PhoneNumber);
+        var user = await userQueryable.FirstOrDefaultAsync(u => u.PhoneNumber == input.PhoneNumber);
         
         if (user == null)
         {
@@ -300,7 +299,7 @@ public class AuthController : BaseController
         if (result.Status == Domain.Common.QrCodeStatus.Confirmed && result.UserId.HasValue)
         {
             var userQueryable = await _userRepository.GetQueryableAsync();
-            var user = userQueryable.FirstOrDefault(u => u.Id == result.UserId.Value);
+            var user = await userQueryable.FirstOrDefaultAsync(u => u.Id == result.UserId.Value);
             if (user != null)
             {
                 result.AccessToken = _jwtService.GenerateToken(user.Id, user.UserName!, user.TenantId ?? Guid.Empty);
@@ -332,7 +331,7 @@ public class AuthController : BaseController
     {
         var userId = CurrentUser.Id!.Value;
         var userQueryable = await _userRepository.GetQueryableAsync();
-        var user = userQueryable.FirstOrDefault(u => u.Id == userId);
+        var user = await userQueryable.FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)
         {
@@ -357,7 +356,7 @@ public class AuthController : BaseController
     /// <summary>
     /// 映射用户到DTO
     /// </summary>
-    private UserDto MapToUserDto(AppUser user)
+    private static UserDto MapToUserDto(AppUser user)
     {
         return new UserDto
         {
@@ -376,6 +375,9 @@ public class AuthController : BaseController
 /// </summary>
 public class BindAccountInput
 {
+    /// <summary>
+    /// 临时令牌
+    /// </summary>
     public string TempToken { get; set; } = string.Empty;
 }
 
@@ -384,6 +386,9 @@ public class BindAccountInput
 /// </summary>
 public class ScanQrCodeInput
 {
+    /// <summary>
+    /// 二维码UUID
+    /// </summary>
     public string Uuid { get; set; } = string.Empty;
 }
 
@@ -392,5 +397,8 @@ public class ScanQrCodeInput
 /// </summary>
 public class ConfirmQrCodeInput
 {
+    /// <summary>
+    /// 二维码UUID
+    /// </summary>
     public string Uuid { get; set; } = string.Empty;
 }

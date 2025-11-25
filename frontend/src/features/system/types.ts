@@ -1,24 +1,7 @@
 /**
- * 用户列表项
+ * 用户列表项（与后端 UserListDto 保持一致）
  */
 export type UserListItem = {
-  id: number;
-  username: string;
-  email: string;
-  fullName: string;
-  phoneNumber?: string;
-  departmentId?: number;
-  departmentName?: string;
-  roles: string[];
-  isActive: boolean;
-  lastLoginTime?: string;
-  createdAt: string;
-};
-
-/**
- * 用户列表DTO（兼容旧代码）
- */
-export type UserListDto = {
   userId: string;
   userName: string;
   nickName: string;
@@ -26,15 +9,20 @@ export type UserListDto = {
   phoneNumber?: string;
   departmentId?: number;
   departmentName?: string;
-  roles: string[];
   sex?: string;
   status: string;
   creationTime: string;
   lastLoginTime?: string;
+  roles?: string[];
 };
 
 /**
- * 创建用户输入（兼容旧代码）
+ * 用户列表DTO（兼容旧代码）
+ */
+export type UserListDto = UserListItem;
+
+/**
+ * 创建用户输入（与后端 CreateUserInput 保持一致）
  */
 export type CreateUserInput = {
   userName: string;
@@ -43,27 +31,27 @@ export type CreateUserInput = {
   email?: string;
   phoneNumber?: string;
   departmentId?: number;
-  roleIds: string[];
+  roleIds?: string[];
   sex?: string;
-  status: string;
+  status?: string;
 };
 
 /**
- * 更新用户输入（兼容旧代码）
+ * 更新用户输入（与后端 UpdateUserInput 保持一致）
  */
 export type UpdateUserInput = {
-  userId: string;
+  userId?: string;
   nickName?: string;
   email?: string;
   phoneNumber?: string;
   departmentId?: number;
-  roleIds: string[];
+  roleIds?: string[];
   sex?: string;
-  status: string;
+  status?: string;
 };
 
 /**
- * 用户分页请求（兼容旧代码）
+ * 用户分页请求（与后端 UserPagedRequest 保持一致）
  */
 export type UserPagedRequest = {
   pageIndex: number;
@@ -77,69 +65,62 @@ export type UserPagedRequest = {
 };
 
 /**
- * 角色列表项
+ * 角色列表项（与后端 RoleDto 保持一致）
  */
 export type RoleListItem = {
-  id: number;
-  name: string;
-  code: string;
-  description?: string;
-  permissions: string[];
-  userCount: number;
-  isDefault: boolean;
-  createdAt: string;
+  roleId: string;
+  roleName: string;
+  roleKey: string;
+  roleSort: number;
+  dataScope?: string;
+  status: string;
+  remark?: string;
+  creationTime: string;
 };
 
 /**
  * 创建用户请求
  */
-export type CreateUserRequest = {
-  username: string;
-  email: string;
-  password: string;
-  fullName: string;
-  phoneNumber?: string;
-  departmentId?: number;
-  roleIds: number[];
-};
+export type CreateUserRequest = CreateUserInput;
 
 /**
  * 更新用户请求
  */
-export type UpdateUserRequest = {
-  email: string;
-  fullName: string;
-  phoneNumber?: string;
-  departmentId?: number;
-  roleIds: number[];
-  isActive: boolean;
-};
+export type UpdateUserRequest = UpdateUserInput;
 
 /**
- * 创建角色请求
+ * 创建角色请求（与后端 CreateRoleInput 保持一致）
  */
 export type CreateRoleRequest = {
-  name: string;
-  code: string;
-  description?: string;
-  permissions: string[];
+  roleName: string;
+  roleKey: string;
+  roleSort?: number;
+  dataScope?: string;
+  status?: string;
+  remark?: string;
+  menuIds?: number[];
 };
 
 /**
- * 更新角色请求
+ * 更新角色请求（与后端 UpdateRoleInput 保持一致）
  */
 export type UpdateRoleRequest = {
-  name: string;
-  description?: string;
-  permissions: string[];
+  roleId?: string;
+  roleName?: string;
+  roleKey?: string;
+  roleSort?: number;
+  dataScope?: string;
+  status?: string;
+  remark?: string;
+  menuIds?: number[];
 };
 
 /**
  * 用户表单数据
  */
-export type UserFormData = CreateUserRequest | (UpdateUserRequest & { id: number });
+export type UserFormData = CreateUserRequest | (UpdateUserRequest & { userId: string });
 
 /**
  * 角色表单数据
  */
-export type RoleFormData = CreateRoleRequest | (UpdateRoleRequest & { id: number });
+export type RoleFormData = CreateRoleRequest | (UpdateRoleRequest & { roleId: string });

@@ -11,7 +11,7 @@ export const workflowService = {
   async startWorkflow(
     workflowId: string,
     version?: number,
-    data?: Record<string, any>,
+    data?: Record<string, unknown>,
     reference?: string
   ): Promise<string> {
     return request<string>({

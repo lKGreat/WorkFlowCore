@@ -52,13 +52,14 @@ const AuthGuard: React.FC = () => {
       // 转换为 authStore 需要的格式
       setUserInfo({
         userId: String(userInfo.id),
-        userName: userInfo.username,
-        nickName: userInfo.fullName,
+        userName: userInfo.userName,
+        nickName: userInfo.realName,
         email: userInfo.email,
-        status: '0', // TODO: 从后端获取状态
+        status: userInfo.isEnabled ? '0' : '1',
       });
-      setRoles(userInfo.roles);  // 从响应中获取角色
-      setPermissions(userInfo.permissions);  // 从响应中获取权限
+      // TODO: 从后端获取角色和权限
+      setRoles(['user']); // 临时默认角色
+      setPermissions([]); // 临时空权限
 
       // TODO: 获取动态路由
       // const routers = await authService.getRouters();
@@ -106,4 +107,3 @@ const AuthGuard: React.FC = () => {
 };
 
 export default AuthGuard;
-

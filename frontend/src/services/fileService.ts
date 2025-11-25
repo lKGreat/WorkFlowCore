@@ -1,7 +1,7 @@
 /**
  * 文件服务适配层（兼容旧代码）
  */
-import { httpClient } from '../api/httpClient';
+import { request, httpClient } from '../api';
 import type {
   InitiateUploadRequest,
   InitiateUploadResponse,
@@ -9,23 +9,24 @@ import type {
   FileAttachmentDto,
 } from '../features/file/types';
 
-const BASE_URL = '/api/Files';
+const BASE_URL = '/api/files';
 
 /**
  * 初始化分片上传
  */
 export async function initiateUpload(
-  request: InitiateUploadRequest
+  data: InitiateUploadRequest
 ): Promise<InitiateUploadResponse> {
-  const response = await httpClient.post<InitiateUploadResponse>(
-    `${BASE_URL}/chunk/init`,
-    request
-  );
-  return response.data;
+  return request<InitiateUploadResponse>({
+    method: 'POST',
+    url: `${BASE_URL}/chunk/init`,
+    data,
+  });
 }
 
 /**
  * 上传分片
+ * 注意：分片上传需要使用 httpClient 以支持 FormData 和进度回调
  */
 export async function uploadChunk(
   uploadId: string,
@@ -55,11 +56,11 @@ export async function uploadChunk(
  * 完成分片上传
  */
 export async function completeUpload(uploadId: string): Promise<FileAttachmentDto> {
-  const response = await httpClient.post<FileAttachmentDto>(
-    `${BASE_URL}/chunk/complete`,
-    { uploadId }
-  );
-  return response.data;
+  return request<FileAttachmentDto>({
+    method: 'POST',
+    url: `${BASE_URL}/chunk/complete`,
+    data: { uploadId },
+  });
 }
 
 /**
@@ -68,17 +69,21 @@ export async function completeUpload(uploadId: string): Promise<FileAttachmentDt
 export async function getUploadProgress(
   uploadId: string
 ): Promise<GetUploadProgressResponse> {
-  const response = await httpClient.get<GetUploadProgressResponse>(
-    `${BASE_URL}/chunk/progress/${uploadId}`
-  );
-  return response.data;
+  return request<GetUploadProgressResponse>({
+    method: 'GET',
+    url: `${BASE_URL}/chunk/progress/${uploadId}`,
+  });
 }
 
 /**
  * 取消上传
  */
 export async function cancelUpload(uploadId: string): Promise<void> {
-  await httpClient.post(`${BASE_URL}/chunk/cancel`, { uploadId });
+  return request<void>({
+    method: 'POST',
+    url: `${BASE_URL}/chunk/cancel`,
+    data: { uploadId },
+  });
 }
 
 /**
@@ -88,26 +93,29 @@ export async function getFilesByBusiness(
   businessType: string,
   businessId: string
 ): Promise<FileAttachmentDto[]> {
-  const response = await httpClient.get<FileAttachmentDto[]>(
-    `${BASE_URL}/business/${businessType}/${businessId}`
-  );
-  return response.data;
+  return request<FileAttachmentDto[]>({
+    method: 'GET',
+    url: `${BASE_URL}/business/${businessType}/${businessId}`,
+  });
 }
 
 /**
  * 删除文件
  */
 export async function deleteFile(attachmentId: string): Promise<void> {
-  await httpClient.delete(`${BASE_URL}/${attachmentId}`);
+  return request<void>({
+    method: 'DELETE',
+    url: `${BASE_URL}/${attachmentId}`,
+  });
 }
 
 /**
  * 获取文件下载URL
  */
 export async function getFileDownloadUrl(attachmentId: string): Promise<string> {
-  const response = await httpClient.get<{ url: string }>(
-    `${BASE_URL}/${attachmentId}/download-url`
-  );
-  return response.data.url;
+  const result = await request<{ url: string }>({
+    method: 'GET',
+    url: `${BASE_URL}/${attachmentId}/download-url`,
+  });
+  return result.url;
 }
-

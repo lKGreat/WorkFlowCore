@@ -33,6 +33,7 @@ export function useUserList() {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.current, pagination.pageSize, searchText]);
 
   useEffect(() => {
@@ -55,9 +56,9 @@ export function useUserList() {
     }));
   }, []);
 
-  const handleDelete = useCallback(async (id: number) => {
+  const handleDelete = useCallback(async (id: string) => {
     try {
-      await userService.deleteUser(String(id));
+      await userService.deleteUser(id);
       message.success('删除成功');
       loadData();
     } catch (error: unknown) {
@@ -66,13 +67,14 @@ export function useUserList() {
     }
   }, [loadData]);
 
-  const handleToggleStatus = useCallback(async (id: number, isActive: boolean) => {
+  const handleToggleStatus = useCallback(async (id: string, status: string) => {
     try {
-      if (isActive) {
-        await userService.disableUser(String(id));
+      // status === '0' 表示正常，切换为禁用；status === '1' 表示禁用，切换为启用
+      if (status === '0') {
+        await userService.disableUser(id);
         message.success('已禁用');
       } else {
-        await userService.enableUser(String(id));
+        await userService.enableUser(id);
         message.success('已启用');
       }
       loadData();
@@ -81,6 +83,16 @@ export function useUserList() {
       message.error(err.message || '操作失败');
     }
   }, [loadData]);
+
+  const handleResetPassword = useCallback(async (id: string) => {
+    try {
+      await userService.resetPassword(id, '123456');
+      message.success('密码已重置为 123456');
+    } catch (error: unknown) {
+      const err = error as Error;
+      message.error(err.message || '重置密码失败');
+    }
+  }, []);
 
   return {
     data,
@@ -91,7 +103,7 @@ export function useUserList() {
     handleSearch,
     handleDelete,
     handleToggleStatus,
+    handleResetPassword,
     reload: loadData,
   };
 }
-

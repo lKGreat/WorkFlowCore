@@ -17,6 +17,7 @@ export default function UserManagement() {
     handleSearch,
     handleDelete,
     handleToggleStatus,
+    handleResetPassword,
   } = useUserList();
 
   const [, setSelectedUser] = useState<UserListItem | null>(null);
@@ -29,10 +30,6 @@ export default function UserManagement() {
   const handleCreate = () => {
     setSelectedUser(null);
     message.info('新建功能开发中...');
-  };
-
-  const handleResetPassword = () => {
-    message.info('重置密码功能开发中...');
   };
 
   return (
