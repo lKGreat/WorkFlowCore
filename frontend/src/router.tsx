@@ -27,6 +27,19 @@ const VersionHistory = lazy(() =>
 // 懒加载系统管理模块
 const UserManagement = lazy(() => import('./features/system/pages/User'));
 const RoleManagement = lazy(() => import('./features/system/pages/Role'));
+const DepartmentManagement = lazy(() => import('./features/system/pages/Department'));
+const PostManagement = lazy(() => import('./features/system/pages/Post'));
+const MenuManagement = lazy(() => import('./features/system/pages/Menu'));
+const DictManagement = lazy(() => import('./features/system/pages/Dict'));
+const ConfigManagement = lazy(() => import('./features/system/pages/Config'));
+const NoticeManagement = lazy(() => import('./features/system/pages/Notice'));
+
+// 懒加载监控管理模块
+const LoginLogManagement = lazy(() => import('./features/monitor/pages/LoginLog'));
+const OperationLogManagement = lazy(() => import('./features/monitor/pages/OperationLog'));
+const OnlineUserManagement = lazy(() => import('./features/monitor/pages/OnlineUser'));
+const ServerMonitor = lazy(() => import('./features/monitor/pages/Server'));
+const TaskManagement = lazy(() => import('./features/monitor/pages/Task'));
 
 // 懒加载文件管理模块
 const FileUploadDemo = lazy(() => 
@@ -72,6 +85,7 @@ export const routes: RouteObject[] = [
             path: 'file-upload',
             element: <FileUploadDemo />
           },
+          // 系统管理
           {
             path: 'system/user',
             element: <UserManagement />
@@ -79,6 +93,51 @@ export const routes: RouteObject[] = [
           {
             path: 'system/role',
             element: <RoleManagement />
+          },
+          {
+            path: 'system/dept',
+            element: <DepartmentManagement />
+          },
+          {
+            path: 'system/post',
+            element: <PostManagement />
+          },
+          {
+            path: 'system/menu',
+            element: <MenuManagement />
+          },
+          {
+            path: 'system/dict',
+            element: <DictManagement />
+          },
+          {
+            path: 'system/config',
+            element: <ConfigManagement />
+          },
+          {
+            path: 'system/notice',
+            element: <NoticeManagement />
+          },
+          // 监控管理
+          {
+            path: 'monitor/logininfor',
+            element: <LoginLogManagement />
+          },
+          {
+            path: 'monitor/operlog',
+            element: <OperationLogManagement />
+          },
+          {
+            path: 'monitor/online',
+            element: <OnlineUserManagement />
+          },
+          {
+            path: 'monitor/server',
+            element: <ServerMonitor />
+          },
+          {
+            path: 'monitor/job',
+            element: <TaskManagement />
           }
         ]
       },

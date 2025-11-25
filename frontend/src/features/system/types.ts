@@ -124,3 +124,139 @@ export type UserFormData = CreateUserRequest | (UpdateUserRequest & { userId: st
  * 角色表单数据
  */
 export type RoleFormData = CreateRoleRequest | (UpdateRoleRequest & { roleId: string });
+
+/**
+ * 部门DTO（与后端 DepartmentDto 保持一致）
+ */
+export type DepartmentDto = {
+  id: number;
+  name: string;
+  code?: string;
+  parentId?: number;
+  parentName?: string;
+  managerId?: number;
+  managerName?: string;
+  sortOrder: number;
+  ancestors?: string;
+  status: string;
+  children?: DepartmentDto[];
+  creationTime?: string;
+};
+
+/**
+ * 岗位DTO（与后端 PostDto 保持一致）
+ */
+export type PostDto = {
+  id: number;
+  postCode: string;
+  postName: string;
+  postSort: number;
+  status: string;
+  remark?: string;
+  userNum?: number;
+  creationTime?: string;
+};
+
+/**
+ * 岗位查询DTO
+ */
+export type PostQueryDto = {
+  pageIndex?: number;
+  pageSize?: number;
+  postCode?: string;
+  postName?: string;
+  status?: string;
+};
+
+/**
+ * 菜单DTO（与后端 MenuDto 保持一致）
+ */
+export type MenuDto = {
+  menuId: number;
+  menuName: string;
+  parentId?: number;
+  menuType: string;
+  path?: string;
+  component?: string;
+  permissionCode?: string;
+  icon?: string;
+  query?: string;
+  isCache: string;
+  menuNameKey?: string;
+  orderNum: number;
+  visible: boolean;
+  isFrame: boolean;
+  status: string;
+  creationTime?: string;
+  children?: MenuDto[];
+};
+
+/**
+ * 字典类型DTO
+ */
+export type DictTypeDto = {
+  dictId: number;
+  dictName: string;
+  dictType: string;
+  status: string;
+  remark?: string;
+  creationTime: string;
+};
+
+/**
+ * 字典数据DTO
+ */
+export type DictDataDto = {
+  dictCode: number;
+  dictTypeId: number;
+  dictLabel: string;
+  dictValue: string;
+  dictSort: number;
+  status: string;
+  cssClass?: string;
+  listClass?: string;
+  isDefault: boolean;
+  creationTime: string;
+};
+
+/**
+ * 系统配置DTO
+ */
+export type ConfigDto = {
+  configId: number;
+  configKey: string;
+  configValue: string;
+  configName: string;
+  configType: string;
+  remark?: string;
+  creationTime: string;
+};
+
+/**
+ * 通知公告DTO
+ */
+export type NoticeDto = {
+  id: number;
+  noticeId: number;
+  noticeTitle: string;
+  noticeType: number;
+  noticeContent?: string;
+  status: number;
+  publisher?: string;
+  beginTime?: string;
+  endTime?: string;
+  popup: number;
+  creationTime?: string;
+};
+
+/**
+ * 通知公告查询DTO
+ */
+export type NoticeQueryDto = {
+  pageIndex?: number;
+  pageSize?: number;
+  noticeTitle?: string;
+  noticeType?: number;
+  publisher?: string;
+  status?: number;
+};
