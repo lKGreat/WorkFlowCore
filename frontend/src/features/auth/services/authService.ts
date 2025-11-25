@@ -6,6 +6,8 @@ import type {
   ThirdPartyBindRequest,
   RefreshTokenRequest,
   RefreshTokenResponse,
+  GetInfoResult,
+  RouterDto,
 } from '../types';
 
 const BASE_URL = '/api/Auth';
@@ -91,6 +93,26 @@ export const authService = {
     return request<LoginResponse['user']>({
       method: 'GET',
       url: `${BASE_URL}/me`,
+    });
+  },
+
+  /**
+   * 获取用户信息、角色和权限
+   */
+  async getInfo(): Promise<GetInfoResult> {
+    return request<GetInfoResult>({
+      method: 'GET',
+      url: `${BASE_URL}/getInfo`,
+    });
+  },
+
+  /**
+   * 获取用户路由配置
+   */
+  async getRouters(): Promise<RouterDto[]> {
+    return request<RouterDto[]>({
+      method: 'GET',
+      url: `${BASE_URL}/getRouters`,
     });
   },
 };

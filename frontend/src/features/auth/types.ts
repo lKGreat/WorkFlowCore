@@ -86,3 +86,57 @@ export type RefreshTokenResponse = {
   refreshToken: string;
   expiresAt: string;
 };
+
+/**
+ * 用户信息详情（用于 getInfo 接口）
+ */
+export type UserInfoDetail = {
+  userId: string;
+  userName: string;
+  nickName: string;
+  email?: string;
+  phoneNumber?: string;
+  sex?: string;
+  avatar?: string;
+  status: string;
+  departmentId?: number;
+  departmentName?: string;
+};
+
+/**
+ * 获取用户信息响应（包含角色和权限）
+ */
+export type GetInfoResult = {
+  user: UserInfoDetail;
+  roles: string[];
+  permissions: string[];
+};
+
+/**
+ * 路由元数据
+ */
+export type RouterMeta = {
+  title: string;
+  icon?: string;
+  noCache?: boolean;
+  link?: string;
+  titleKey?: string;
+  isNew?: number;
+  iconColor?: string;
+  permi?: string;
+};
+
+/**
+ * 路由配置（后端返回格式）
+ */
+export type RouterDto = {
+  name: string;
+  path: string;
+  hidden?: boolean;
+  redirect?: string;
+  component: string;
+  alwaysShow?: boolean;
+  query?: string;
+  meta?: RouterMeta;
+  children?: RouterDto[];
+};

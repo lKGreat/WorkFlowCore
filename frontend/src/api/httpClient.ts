@@ -3,8 +3,28 @@ import { message } from 'antd'
 import { ApiError } from './apiError'
 import type { ApiResponse } from './types'
 import { getToken } from '../utils/auth'
+import { useAuthStore } from '../stores/authStore'
+import type { RefreshTokenResponse } from '../features/auth/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
+
+// Token 刷新状态
+let isRefreshing = false
+let failedQueue: Array<{
+  resolve: (value: unknown) => void
+  reject: (reason?: unknown) => void
+}> = []
+
+const processQueue = (error: Error | null, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+  failedQueue = []
+}
 
 const httpClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -17,18 +37,31 @@ const httpClient: AxiosInstance = axios.create({
 // 请求计数器（用于全局 Loading）
 let pendingRequests = 0
 
-// 动态导入 uiStore（避免循环依赖）
-let uiStoreModule: typeof import('../stores/uiStore') | null = null
-async function getUiStore() {
-  if (!uiStoreModule) {
-    uiStoreModule = await import('../stores/uiStore')
+// 预加载 uiStore（避免循环依赖，同时提前缓存）
+let uiStoreGetter: (() => ReturnType<typeof import('../stores/uiStore').useUiStore.getState>) | null = null
+
+// 初始化 uiStore 获取器
+function initUiStore() {
+  if (!uiStoreGetter) {
+    import('../stores/uiStore').then((module) => {
+      uiStoreGetter = () => module.useUiStore.getState()
+    }).catch(() => {
+      // 初始化失败，忽略
+    })
   }
-  return uiStoreModule.useUiStore.getState()
+}
+
+// 立即初始化
+initUiStore()
+
+// 同步获取 uiStore（如果已初始化）
+function getUiStore() {
+  return uiStoreGetter?.()
 }
 
 // 请求拦截器 - 添加Token + Loading计数
 httpClient.interceptors.request.use(
-  async (config) => {
+  (config) => {
     // 自动添加 Token
     const token = getToken();
     if (token) {
@@ -39,12 +72,8 @@ httpClient.interceptors.request.use(
     if (!config.headers['X-Silent']) {
       pendingRequests++;
       if (pendingRequests === 1) {
-        try {
-          const uiStore = await getUiStore();
-          uiStore.setGlobalLoading(true);
-        } catch {
-          // 如果 uiStore 加载失败，忽略
-        }
+        const uiStore = getUiStore();
+        uiStore?.setGlobalLoading(true);
       }
     }
     
@@ -86,35 +115,106 @@ const buildApiErrorFromResponse = (
 }
 
 // 减少请求计数
-async function decrementPending(config?: AxiosRequestConfig) {
+function decrementPending(config?: AxiosRequestConfig) {
   if (!config?.headers?.['X-Silent']) {
     pendingRequests = Math.max(0, pendingRequests - 1);
     if (pendingRequests === 0) {
-      try {
-        const uiStore = await getUiStore();
-        uiStore.setGlobalLoading(false);
-      } catch {
-        // 如果 uiStore 加载失败，忽略
-      }
+      const uiStore = getUiStore();
+      uiStore?.setGlobalLoading(false);
     }
   }
 }
 
 // 响应拦截器
 httpClient.interceptors.response.use(
-  async (response) => {
-    await decrementPending(response.config);
+  (response) => {
+    decrementPending(response.config);
     return response;
   },
   async (error: AxiosError<ApiResponse<unknown>>) => {
-    await decrementPending(error.config);
+    decrementPending(error.config);
     
-    // 401未授权 - 跳转登录
-    if (error.response?.status === 401) {
-      const { removeToken } = await import('../utils/auth');
-      removeToken();
-      window.location.href = '/login';
-      return Promise.reject(new ApiError('未登录或登录已过期', { status: 401 }));
+    const originalRequest = error.config
+    
+    // 401未授权 - 尝试刷新Token
+    if (error.response?.status === 401 && originalRequest) {
+      // 如果是刷新Token接口本身失败，直接跳转登录
+      if (originalRequest.url?.includes('/refresh')) {
+        const { removeToken } = await import('../utils/auth');
+        const authStore = useAuthStore.getState()
+        removeToken();
+        authStore.logout();
+        window.location.href = '/login';
+        return Promise.reject(new ApiError('登录已过期', { status: 401 }));
+      }
+
+      // 如果正在刷新Token，将请求加入队列
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        }).then(() => {
+          // Token刷新完成后，重试原请求
+          return httpClient.request(originalRequest)
+        }).catch((err) => {
+          return Promise.reject(err)
+        })
+      }
+
+      // 开始刷新Token
+      isRefreshing = true
+      const authStore = useAuthStore.getState()
+      const refreshToken = authStore.refreshToken
+
+      if (!refreshToken) {
+        // 没有refreshToken，直接跳转登录
+        isRefreshing = false
+        const { removeToken } = await import('../utils/auth');
+        removeToken();
+        authStore.logout();
+        window.location.href = '/login';
+        return Promise.reject(new ApiError('登录已过期', { status: 401 }));
+      }
+
+      try {
+        // 调用刷新Token接口
+        const response = await httpClient.post<ApiResponse<RefreshTokenResponse>>(
+          '/api/Auth/refresh',
+          { refreshToken }
+        )
+        
+        if (response.data.success && response.data.data) {
+          const { token, refreshToken: newRefreshToken } = response.data.data
+          
+          // 更新Token
+          authStore.setToken(token)
+          authStore.setRefreshToken(newRefreshToken)
+          
+          // 更新原请求的Authorization头
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+          }
+          
+          // 处理队列中的请求
+          processQueue(null, token)
+          isRefreshing = false
+          
+          // 重试原请求
+          return httpClient.request(originalRequest)
+        } else {
+          throw new Error('刷新Token失败')
+        }
+      } catch (refreshError) {
+        // 刷新失败，清除状态并跳转登录
+        processQueue(refreshError as Error, null)
+        isRefreshing = false
+        
+        const { removeToken } = await import('../utils/auth');
+        removeToken();
+        authStore.logout();
+        window.location.href = '/login';
+        
+        return Promise.reject(new ApiError('登录已过期', { status: 401 }))
+      }
     }
 
     const apiError =

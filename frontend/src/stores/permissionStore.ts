@@ -1,40 +1,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { RouteObject } from 'react-router-dom';
-
-/**
- * 路由元数据
- */
-export interface RouterMeta {
-  title: string;
-  icon?: string;
-  noCache?: boolean;
-  link?: string;
-  titleKey?: string;
-  isNew?: number;
-  iconColor?: string;
-  permi?: string;
-}
-
-/**
- * 后端路由数据结构
- */
-export interface BackendRoute {
-  name: string;
-  path: string;
-  hidden?: boolean;
-  redirect?: string;
-  component: string;
-  alwaysShow?: boolean;
-  query?: string;
-  meta?: RouterMeta;
-  children?: BackendRoute[];
-}
+import { secureStorage } from '../utils/secureStorage';
+import type { BackendRoute } from '../types/router';
 
 /**
  * 权限状态
  */
-interface PermissionState {
+type PermissionState = {
   // 路由是否已加载
   routesLoaded: boolean;
   // 动态路由列表
@@ -59,7 +32,22 @@ interface PermissionState {
   hasAnyPermission: (permissions: string[]) => boolean;
   hasRole: (role: string) => boolean;
   hasAnyRole: (roles: string[]) => boolean;
-}
+};
+
+/**
+ * 加密存储引擎（与 authStore 相同）
+ */
+const encryptedStorage = {
+  getItem: (name: string): string | null => {
+    return secureStorage.getItem(name);
+  },
+  setItem: (name: string, value: string): void => {
+    secureStorage.setItem(name, value);
+  },
+  removeItem: (name: string): void => {
+    secureStorage.removeItem(name);
+  }
+};
 
 /**
  * 权限Store
@@ -129,7 +117,7 @@ export const usePermissionStore = create<PermissionState>()(
     }),
     {
       name: 'permission-storage',
-      storage: createJSONStorage(() => sessionStorage), // 使用sessionStorage，刷新清除
+      storage: createJSONStorage(() => encryptedStorage), // 使用加密存储
       partialize: (state) => ({
         permissions: state.permissions,
         roles: state.roles,

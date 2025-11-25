@@ -1,9 +1,30 @@
 import React from 'react';
 import { Layout as AntLayout, Menu, Dropdown, Avatar, Space, message } from 'antd';
-import { FileTextOutlined, ApartmentOutlined, CloudUploadOutlined, UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
+import {
+  FileTextOutlined,
+  ApartmentOutlined,
+  CloudUploadOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+  TeamOutlined,
+  SafetyOutlined,
+  DeploymentUnitOutlined,
+  IdcardOutlined,
+  MenuOutlined,
+  BookOutlined,
+  ToolOutlined,
+  BellOutlined,
+  LoginOutlined,
+  FileSearchOutlined,
+  GlobalOutlined,
+  DesktopOutlined,
+  ScheduleOutlined,
+} from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import type { MenuProps } from 'antd';
 import { useAuthStore } from '../stores/authStore';
+import { usePermissionStore } from '../stores/permissionStore';
 import { useRouterStore } from '../stores/routerStore';
 import { authService } from '../features/auth/services/authService';
 import { removeToken } from '../utils/auth';
@@ -26,6 +47,7 @@ export const Layout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { userInfo, logout: logoutStore } = useAuthStore();
+  const { clearPermissions } = usePermissionStore();
   const { routes, clearRoutes } = useRouterStore();
 
   // 动态菜单（从路由配置生成）
@@ -51,6 +73,19 @@ export const Layout: React.FC = () => {
       'instance': <ApartmentOutlined />,
       'upload': <CloudUploadOutlined />,
       'user': <UserOutlined />,
+      'team': <TeamOutlined />,
+      'safety': <SafetyOutlined />,
+      'deployment': <DeploymentUnitOutlined />,
+      'idcard': <IdcardOutlined />,
+      'menu': <MenuOutlined />,
+      'book': <BookOutlined />,
+      'tool': <ToolOutlined />,
+      'bell': <BellOutlined />,
+      'login': <LoginOutlined />,
+      'search': <FileSearchOutlined />,
+      'global': <GlobalOutlined />,
+      'desktop': <DesktopOutlined />,
+      'schedule': <ScheduleOutlined />,
       'setting': <SettingOutlined />
     };
     return iconMap[iconName || ''] || <FileTextOutlined />;
@@ -60,10 +95,43 @@ export const Layout: React.FC = () => {
   const menuItems: MenuItem[] = routes && routes.length > 0 
     ? buildMenuItems(routes as RouteConfig[])
     : [
-        { key: '/', icon: <FileTextOutlined />, label: '流程定义' },
-        { key: '/instances', icon: <ApartmentOutlined />, label: '流程实例' },
+        {
+          key: 'workflow',
+          icon: <ApartmentOutlined />,
+          label: '流程管理',
+          children: [
+            { key: '/', icon: <FileTextOutlined />, label: '流程定义' },
+            { key: '/instances', icon: <ApartmentOutlined />, label: '流程实例' },
+          ],
+        },
+        {
+          key: 'system',
+          icon: <SettingOutlined />,
+          label: '系统管理',
+          children: [
+            { key: '/system/user', icon: <UserOutlined />, label: '用户管理' },
+            { key: '/system/role', icon: <SafetyOutlined />, label: '角色管理' },
+            { key: '/system/dept', icon: <DeploymentUnitOutlined />, label: '部门管理' },
+            { key: '/system/post', icon: <IdcardOutlined />, label: '岗位管理' },
+            { key: '/system/menu', icon: <MenuOutlined />, label: '菜单管理' },
+            { key: '/system/dict', icon: <BookOutlined />, label: '字典管理' },
+            { key: '/system/config', icon: <ToolOutlined />, label: '参数设置' },
+            { key: '/system/notice', icon: <BellOutlined />, label: '通知公告' },
+          ],
+        },
+        {
+          key: 'monitor',
+          icon: <DesktopOutlined />,
+          label: '系统监控',
+          children: [
+            { key: '/monitor/logininfor', icon: <LoginOutlined />, label: '登录日志' },
+            { key: '/monitor/operlog', icon: <FileSearchOutlined />, label: '操作日志' },
+            { key: '/monitor/online', icon: <GlobalOutlined />, label: '在线用户' },
+            { key: '/monitor/server', icon: <DesktopOutlined />, label: '服务监控' },
+            { key: '/monitor/job', icon: <ScheduleOutlined />, label: '定时任务' },
+          ],
+        },
         { key: '/file-upload', icon: <CloudUploadOutlined />, label: '文件上传' },
-        { key: '/system/user', icon: <UserOutlined />, label: '用户管理' },
       ];
 
   const handleLogout = async () => {
@@ -71,6 +139,7 @@ export const Layout: React.FC = () => {
       await authService.logout();
       removeToken();
       logoutStore();
+      clearPermissions();
       clearRoutes();
       message.success('已退出登录');
       navigate('/login');
@@ -79,6 +148,7 @@ export const Layout: React.FC = () => {
       // 即使失败也清除本地状态
       removeToken();
       logoutStore();
+      clearPermissions();
       clearRoutes();
       navigate('/login');
     }

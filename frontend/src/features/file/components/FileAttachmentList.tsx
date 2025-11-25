@@ -7,7 +7,7 @@ import {
   FileOutlined,
   ExclamationCircleOutlined,
 } from '@ant-design/icons';
-import { getFilesByBusiness, deleteFile, getFileDownloadUrl } from '../../../services/fileService';
+import { getFilesByBusiness, deleteFile, getFileDownloadUrl } from '../services/fileService';
 import type { FileAttachmentDto } from '../types';
 
 type FileAttachmentListProps = {

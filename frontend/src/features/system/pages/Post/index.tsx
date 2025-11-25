@@ -125,7 +125,7 @@ export default function PostManagement() {
       }
       setIsModalOpen(false);
       form.resetFields();
-    } catch (error) {
+    } catch {
       // 表单验证失败或提交失败
     }
   };

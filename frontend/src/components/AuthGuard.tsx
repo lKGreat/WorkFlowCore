@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useAuthStore } from '../stores/authStore';
+import { usePermissionStore } from '../stores/permissionStore';
 import { useRouterStore } from '../stores/routerStore';
 import { authService } from '../features/auth/services/authService';
 
@@ -14,7 +15,8 @@ const AuthGuard: React.FC = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const isCheckingRef = useRef(false);
   
-  const { token, roles, setUserInfo, setRoles, setPermissions } = useAuthStore();
+  const { token, setUserInfo } = useAuthStore();
+  const { roles, setRoles, setPermissions } = usePermissionStore();
   const { setRoutes } = useRouterStore();
 
   // 白名单路由(不需要登录)
@@ -47,24 +49,30 @@ const AuthGuard: React.FC = () => {
     // 有Token但未加载用户信息
     isCheckingRef.current = true;
     try {
-      // 获取用户信息
-      const userInfo = await authService.getCurrentUser();
-      // 转换为 authStore 需要的格式
+      // 获取用户信息、角色和权限
+      const infoResult = await authService.getInfo();
+      
+      // 设置用户信息
       setUserInfo({
-        userId: String(userInfo.id),
-        userName: userInfo.userName,
-        nickName: userInfo.realName,
-        email: userInfo.email,
-        status: userInfo.isEnabled ? '0' : '1',
+        userId: infoResult.user.userId,
+        userName: infoResult.user.userName,
+        nickName: infoResult.user.nickName,
+        email: infoResult.user.email,
+        phoneNumber: infoResult.user.phoneNumber,
+        departmentId: infoResult.user.departmentId,
+        departmentName: infoResult.user.departmentName,
+        sex: infoResult.user.sex,
+        avatar: infoResult.user.avatar,
+        status: infoResult.user.status,
       });
-      // TODO: 从后端获取角色和权限
-      setRoles(['user']); // 临时默认角色
-      setPermissions([]); // 临时空权限
+      
+      // 设置角色和权限
+      setRoles(infoResult.roles);
+      setPermissions(infoResult.permissions);
 
-      // TODO: 获取动态路由
-      // const routers = await authService.getRouters();
-      // setRoutes(routers);
-      setRoutes([]);
+      // 获取动态路由
+      const routers = await authService.getRouters();
+      setRoutes(routers);
 
       setAuthenticated(true);
     } catch (error) {

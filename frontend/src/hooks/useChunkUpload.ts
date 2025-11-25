@@ -6,7 +6,7 @@ import {
   completeUpload,
   getUploadProgress,
   cancelUpload,
-} from '../services/fileService';
+} from '../features/file/services/fileService';
 import type {
   FileUploadProgress,
   StoredUploadTask,

@@ -22,7 +22,7 @@ type UiState = {
   sidebarCollapsed: boolean;
   // 通知队列
   notifications: NotificationConfig[];
-};
+};;
 
 type UiActions = {
   setGlobalLoading: (loading: boolean) => void;
@@ -36,7 +36,7 @@ type UiActions = {
   showError: (message: string, description?: string) => void;
   showWarning: (message: string, description?: string) => void;
   showInfo: (message: string, description?: string) => void;
-};
+};;
 
 const initialState: UiState = {
   globalLoading: false,

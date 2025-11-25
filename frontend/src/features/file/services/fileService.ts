@@ -3,6 +3,10 @@ import type {
   InitChunkUploadResponse,
   CompleteChunkUploadRequest,
   FileUploadResponse,
+  InitiateUploadRequest,
+  InitiateUploadResponse,
+  GetUploadProgressResponse,
+  FileAttachmentDto,
 } from '../types';
 
 const BASE_URL = '/api/files';
@@ -52,7 +56,8 @@ export const fileService = {
   async uploadChunk(
     uploadId: string,
     chunkIndex: number,
-    chunk: Blob
+    chunk: Blob,
+    onProgress?: (percentage: number) => void
   ): Promise<void> {
     const formData = new FormData();
     formData.append('uploadId', uploadId);
@@ -62,6 +67,12 @@ export const fileService = {
     await httpClient.post(`${BASE_URL}/chunk/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percentage);
+        }
       },
     });
   },
@@ -100,3 +111,89 @@ export const fileService = {
     });
   },
 };
+
+/**
+ * 初始化分片上传（兼容旧版本接口名）
+ */
+export async function initiateUpload(
+  data: InitiateUploadRequest
+): Promise<InitiateUploadResponse> {
+  return request<InitiateUploadResponse>({
+    method: 'POST',
+    url: `${BASE_URL}/chunk/init`,
+    data,
+  });
+}
+
+/**
+ * 上传分片（兼容旧版本接口名）
+ */
+export async function uploadChunk(
+  uploadId: string,
+  chunkIndex: number,
+  chunk: Blob,
+  onProgress?: (percentage: number) => void
+): Promise<void> {
+  return fileService.uploadChunk(uploadId, chunkIndex, chunk, onProgress);
+}
+
+/**
+ * 完成分片上传（兼容旧版本接口名）
+ */
+export async function completeUpload(uploadId: string): Promise<FileAttachmentDto> {
+  return request<FileAttachmentDto>({
+    method: 'POST',
+    url: `${BASE_URL}/chunk/complete`,
+    data: { uploadId },
+  });
+}
+
+/**
+ * 获取上传进度
+ */
+export async function getUploadProgress(
+  uploadId: string
+): Promise<GetUploadProgressResponse> {
+  return request<GetUploadProgressResponse>({
+    method: 'GET',
+    url: `${BASE_URL}/chunk/progress/${uploadId}`,
+  });
+}
+
+/**
+ * 取消上传
+ */
+export async function cancelUpload(uploadId: string): Promise<void> {
+  return fileService.cancelChunkUpload(uploadId);
+}
+
+/**
+ * 获取业务关联的文件列表
+ */
+export async function getFilesByBusiness(
+  businessType: string,
+  businessId: string
+): Promise<FileAttachmentDto[]> {
+  return request<FileAttachmentDto[]>({
+    method: 'GET',
+    url: `${BASE_URL}/business/${businessType}/${businessId}`,
+  });
+}
+
+/**
+ * 删除文件
+ */
+export async function deleteFile(attachmentId: string): Promise<void> {
+  return fileService.deleteFile(attachmentId);
+}
+
+/**
+ * 获取文件下载URL
+ */
+export async function getFileDownloadUrl(attachmentId: string): Promise<string> {
+  const result = await request<{ url: string }>({
+    method: 'GET',
+    url: `${BASE_URL}/${attachmentId}/download-url`,
+  });
+  return result.url;
+}

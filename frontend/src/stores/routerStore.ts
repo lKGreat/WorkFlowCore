@@ -1,30 +1,13 @@
 import { create } from 'zustand';
+import type { RouterConfig } from '../types/router';
 
-export interface RouterMeta {
-  title: string;
-  icon?: string;
-  noCache?: boolean;
-  link?: string;
-}
-
-export interface RouterConfig {
-  name: string;
-  path: string;
-  hidden?: boolean;
-  redirect?: string;
-  component: string;
-  alwaysShow?: boolean;
-  meta?: RouterMeta;
-  children?: RouterConfig[];
-}
-
-interface RouterState {
+type RouterState = {
   routes: RouterConfig[];
   addRoutes: RouterConfig[];
   
   setRoutes: (routes: RouterConfig[]) => void;
   clearRoutes: () => void;
-}
+};
 
 export const useRouterStore = create<RouterState>((set) => ({
   routes: [],

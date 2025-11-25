@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { secureStorage } from '../utils/secureStorage';
 
-interface UserInfo {
+type UserInfo = {
   userId: string;
   userName: string;
   nickName: string;
@@ -13,20 +13,18 @@ interface UserInfo {
   departmentName?: string;
   sex?: string;
   status: string;
-}
+};
 
-interface AuthState {
+type AuthState = {
   token: string | null;
+  refreshToken: string | null;
   userInfo: UserInfo | null;
-  roles: string[];
-  permissions: string[];
   
   setToken: (token: string | null) => void;
+  setRefreshToken: (refreshToken: string | null) => void;
   setUserInfo: (userInfo: UserInfo | null) => void;
-  setRoles: (roles: string[]) => void;
-  setPermissions: (permissions: string[]) => void;
   logout: () => void;
-}
+};
 
 /**
  * 自定义加密存储引擎
@@ -48,20 +46,17 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       token: null,
+      refreshToken: null,
       userInfo: null,
-      roles: [],
-      permissions: [],
 
       setToken: (token) => set({ token }),
+      setRefreshToken: (refreshToken) => set({ refreshToken }),
       setUserInfo: (userInfo) => set({ userInfo }),
-      setRoles: (roles) => set({ roles }),
-      setPermissions: (permissions) => set({ permissions }),
       
       logout: () => set({
         token: null,
-        userInfo: null,
-        roles: [],
-        permissions: []
+        refreshToken: null,
+        userInfo: null
       })
     }),
     {

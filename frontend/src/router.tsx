@@ -1,8 +1,8 @@
 import { lazy } from 'react';
-import { Navigate } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import AuthGuard from './components/AuthGuard';
 import { Layout } from './components/Layout';
+import NotFound from './components/NotFound';
 
 // 静态导入（首屏必需）
 import LoginPage from './features/auth/pages/Login';
@@ -154,10 +154,10 @@ export const routes: RouteObject[] = [
     ]
   },
 
-  // 404 重定向
+  // 404 页面
   {
     path: '*',
-    element: <Navigate to="/login" replace />
+    element: <NotFound />
   }
 ];
 

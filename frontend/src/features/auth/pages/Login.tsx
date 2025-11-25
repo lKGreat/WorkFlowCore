@@ -76,6 +76,7 @@ const LoginPage: React.FC = () => {
 
       if (result.token) {
         authStore.setToken(result.token);
+        authStore.setRefreshToken(result.refreshToken);
         message.success('登录成功');
         const redirect = searchParams.get('redirect') || '/';
         navigate(redirect);
@@ -131,6 +132,7 @@ const LoginPage: React.FC = () => {
 
       if (result.token) {
         authStore.setToken(result.token);
+        authStore.setRefreshToken(result.refreshToken);
         message.success('登录成功');
         const redirect = searchParams.get('redirect') || '/';
         navigate(redirect);
