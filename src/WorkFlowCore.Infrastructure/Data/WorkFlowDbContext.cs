@@ -40,6 +40,7 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
     public DbSet<SystemConfig> SystemConfigs { get; set; }
     public DbSet<OperationLog> OperationLogs { get; set; }
     public DbSet<LoginLog> LoginLogs { get; set; }
+    public DbSet<Notice> Notices { get; set; }
     
     // ABP Identity tables (required by IIdentityDbContext)
     public DbSet<IdentityUser> Users => Set<IdentityUser>();
@@ -331,6 +332,20 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
             b.HasIndex(l => l.LoginTime);
             b.HasIndex(l => l.UserId);
             b.HasIndex(l => new { l.Status, l.LoginTime });
+        });
+
+        // 配置通知公告
+        builder.Entity<Notice>(b =>
+        {
+            b.ToTable("Notices");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.Property(n => n.NoticeTitle).HasMaxLength(200).IsRequired();
+            b.Property(n => n.NoticeContent).HasMaxLength(4000);
+            b.Property(n => n.Publisher).HasMaxLength(100);
+            b.HasIndex(n => n.Status);
+            b.HasIndex(n => new { n.Status, n.Popup });
+            b.HasIndex(n => n.CreationTime);
         });
     }
 }
