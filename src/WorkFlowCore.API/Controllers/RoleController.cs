@@ -23,6 +23,7 @@ public class RoleController : BaseController
     }
 
     [HttpGet("list")]
+    [ActionPermissionFilter(Permission = "system:role:list")]
     [OperationLog("查询角色", "QUERY")]
     public async Task<ActionResult<ApiResponse<PagedResponse<RoleDto>>>> GetPaged([FromQuery] PagedRequest request)
     {
@@ -42,6 +43,7 @@ public class RoleController : BaseController
     }
 
     [HttpPost]
+    [ActionPermissionFilter(Permission = "system:role:add")]
     [OperationLog("新增角色", "INSERT")]
     public async Task<ActionResult<ApiResponse<RoleDto>>> Create([FromBody] CreateRoleInput input)
     {
@@ -50,6 +52,7 @@ public class RoleController : BaseController
     }
 
     [HttpPut("{id}")]
+    [ActionPermissionFilter(Permission = "system:role:edit")]
     [OperationLog("修改角色", "UPDATE")]
     public async Task<ActionResult<ApiResponse<object?>>> Update(Guid id, [FromBody] UpdateRoleInput input)
     {
@@ -59,6 +62,7 @@ public class RoleController : BaseController
     }
 
     [HttpDelete("{ids}")]
+    [ActionPermissionFilter(Permission = "system:role:remove")]
     [OperationLog("删除角色", "DELETE")]
     public async Task<ActionResult<ApiResponse<object?>>> Delete(string ids)
     {
@@ -75,6 +79,7 @@ public class RoleController : BaseController
     }
 
     [HttpPut("{id}/menu")]
+    [ActionPermissionFilter(Permission = "system:role:edit")]
     [OperationLog("分配角色菜单", "UPDATE")]
     public async Task<ActionResult<ApiResponse<object?>>> AssignMenus(Guid id, [FromBody] List<long> menuIds)
     {
