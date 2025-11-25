@@ -125,6 +125,37 @@ public class MenuService : ApplicationService, IMenuService
         await _menuRepository.DeleteAsync(id);
     }
 
+    public async Task<List<string>> GetUserPermissionsAsync(Guid userId)
+    {
+        // 1. 获取用户角色
+        var userRoles = await _userRoleRepository.GetListAsync(ur => ur.UserId == userId);
+        var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
+
+        if (!roleIds.Any())
+        {
+            return new List<string>();
+        }
+
+        // 2. 获取角色对应的菜单ID
+        var roleMenus = await _roleMenuRepository.GetListAsync(rm => roleIds.Contains(rm.RoleId));
+        var menuIds = roleMenus.Select(rm => rm.MenuId).Distinct().ToList();
+
+        // 3. 获取菜单详情（仅获取有权限代码的菜单）
+        var menus = await _menuRepository.GetListAsync(m => 
+            menuIds.Contains(m.Id) && 
+            m.Status == "0" &&
+            !string.IsNullOrEmpty(m.PermissionCode));
+
+        // 4. 提取权限代码
+        var permissions = menus
+            .Where(m => !string.IsNullOrEmpty(m.PermissionCode))
+            .Select(m => m.PermissionCode!)
+            .Distinct()
+            .ToList();
+
+        return permissions;
+    }
+
     /// <summary>
     /// 构建菜单树
     /// </summary>

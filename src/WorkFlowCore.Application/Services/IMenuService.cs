@@ -37,5 +37,12 @@ public interface IMenuService : IApplicationService
     /// 删除菜单
     /// </summary>
     Task DeleteAsync(long id);
+
+    /// <summary>
+    /// 获取用户权限列表
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>权限代码列表</returns>
+    Task<List<string>> GetUserPermissionsAsync(Guid userId);
 }
 
