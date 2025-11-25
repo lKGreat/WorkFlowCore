@@ -39,6 +39,7 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
     public DbSet<DictData> DictDatas { get; set; }
     public DbSet<SystemConfig> SystemConfigs { get; set; }
     public DbSet<OperationLog> OperationLogs { get; set; }
+    public DbSet<LoginLog> LoginLogs { get; set; }
     
     // ABP Identity tables (required by IIdentityDbContext)
     public DbSet<IdentityUser> Users => Set<IdentityUser>();
@@ -311,6 +312,25 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
             b.Property(l => l.OperatorLocation).HasMaxLength(100);
             b.HasIndex(l => l.CreationTime);
             b.HasIndex(l => l.Status);
+        });
+
+        // 配置登录日志
+        builder.Entity<LoginLog>(b =>
+        {
+            b.ToTable("LoginLogs");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.Property(l => l.UserName).HasMaxLength(100).IsRequired();
+            b.Property(l => l.Status).HasMaxLength(10);
+            b.Property(l => l.Ipaddr).HasMaxLength(50);
+            b.Property(l => l.LoginLocation).HasMaxLength(200);
+            b.Property(l => l.Browser).HasMaxLength(200);
+            b.Property(l => l.Os).HasMaxLength(200);
+            b.Property(l => l.Msg).HasMaxLength(500);
+            b.Property(l => l.ClientId).HasMaxLength(100);
+            b.HasIndex(l => l.LoginTime);
+            b.HasIndex(l => l.UserId);
+            b.HasIndex(l => new { l.Status, l.LoginTime });
         });
     }
 }
