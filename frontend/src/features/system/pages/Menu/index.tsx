@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Button, Space, Table, Modal, Form, Input, Select, InputNumber, Popconfirm, TreeSelect, Radio } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import type { DataNode } from 'antd/es/tree';
+import type { RadioChangeEvent } from 'antd';
 import { PageHeader } from '@/components/PageHeader';
 import { useMenuTree } from '../../hooks/useMenuTree';
 import { menuService } from '../../services/menuService';
@@ -132,16 +134,17 @@ export default function MenuManagement() {
   };
 
   // 转换树数据为 TreeSelect 格式
-  const convertToTreeSelectData = (nodes: MenuDto[]): unknown[] => {
+  const convertToTreeSelectData = (nodes: MenuDto[]): DataNode[] => {
     return nodes.map(node => ({
       title: node.menuName,
       value: node.menuId,
+      key: node.menuId,
       children: node.children ? convertToTreeSelectData(node.children) : undefined,
     }));
   };
 
-  const handleMenuTypeChange = (e: { target: { value: string } }) => {
-    setMenuType(e.target.value);
+  const handleMenuTypeChange = (e: RadioChangeEvent) => {
+    setMenuType(e.target.value as string);
   };
 
   return (

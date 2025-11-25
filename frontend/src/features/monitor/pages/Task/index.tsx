@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Space, Table, Modal, Form, Input, Select, InputNumber, Popconfirm, Tag } from 'antd';
+import { Button, Space, Table, Modal, Form, Input, Select, Popconfirm, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { PageHeader } from '@/components/PageHeader';

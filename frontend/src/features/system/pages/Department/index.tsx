@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, Space, Table, Modal, Form, Input, Select, InputNumber, Popconfirm, TreeSelect } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import type { DataNode } from 'antd/es/tree';
 import { PageHeader } from '@/components/PageHeader';
 import { useDepartmentTree } from '../../hooks/useDepartmentTree';
 import { departmentService } from '../../services/departmentService';
@@ -122,10 +123,11 @@ export default function DepartmentManagement() {
   };
 
   // 转换树数据为 TreeSelect 格式
-  const convertToTreeSelectData = (nodes: DepartmentDto[]): unknown[] => {
+  const convertToTreeSelectData = (nodes: DepartmentDto[]): DataNode[] => {
     return nodes.map(node => ({
       title: node.name,
       value: node.id,
+      key: node.id,
       children: node.children ? convertToTreeSelectData(node.children) : undefined,
     }));
   };
