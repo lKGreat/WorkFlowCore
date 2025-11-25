@@ -25,6 +25,21 @@ public class Role : FullAuditedAggregateRoot<long>, IMultiTenant
     public string? Description { get; set; }
 
     /// <summary>
+    /// 数据权限范围（1=全部数据,2=自定义,3=本部门,4=本部门及以下,5=项目,6=仅本人）
+    /// </summary>
+    public int DataScope { get; set; } = 1;
+
+    /// <summary>
+    /// 排序
+    /// </summary>
+    public int RoleSort { get; set; }
+
+    /// <summary>
+    /// 状态（0=正常,1=停用）
+    /// </summary>
+    public int Status { get; set; } = 0;
+
+    /// <summary>
     /// 租户ID
     /// </summary>
     public Guid? TenantId { get; protected set; }
