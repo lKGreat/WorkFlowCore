@@ -44,6 +44,21 @@ public class Menu : FullAuditedAggregateRoot<long>, IMultiTenant
     public string? Icon { get; set; }
 
     /// <summary>
+    /// 路由参数（查询字符串，如：{"id": "1", "name": "test"}）
+    /// </summary>
+    public string? Query { get; set; }
+
+    /// <summary>
+    /// 是否缓存（0=缓存, 1=不缓存）
+    /// </summary>
+    public string IsCache { get; set; } = "0";
+
+    /// <summary>
+    /// 菜单名称国际化key
+    /// </summary>
+    public string? MenuNameKey { get; set; }
+
+    /// <summary>
     /// 显示顺序
     /// </summary>
     public int OrderNum { get; set; }

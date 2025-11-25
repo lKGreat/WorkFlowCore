@@ -79,6 +79,9 @@ public class MenuService : ApplicationService, IMenuService
             Component = dto.Component,
             PermissionCode = dto.PermissionCode,
             Icon = dto.Icon,
+            Query = dto.Query,
+            IsCache = dto.IsCache,
+            MenuNameKey = dto.MenuNameKey,
             OrderNum = dto.OrderNum,
             Visible = dto.Visible,
             IsFrame = dto.IsFrame,
@@ -101,6 +104,9 @@ public class MenuService : ApplicationService, IMenuService
         menu.Component = dto.Component;
         menu.PermissionCode = dto.PermissionCode;
         menu.Icon = dto.Icon;
+        menu.Query = dto.Query;
+        menu.IsCache = dto.IsCache;
+        menu.MenuNameKey = dto.MenuNameKey;
         menu.OrderNum = dto.OrderNum;
         menu.Visible = dto.Visible;
         menu.IsFrame = dto.IsFrame;
@@ -336,6 +342,9 @@ public class MenuService : ApplicationService, IMenuService
             Component = menu.Component,
             PermissionCode = menu.PermissionCode,
             Icon = menu.Icon,
+            Query = menu.Query,
+            IsCache = menu.IsCache,
+            MenuNameKey = menu.MenuNameKey,
             OrderNum = menu.OrderNum,
             Visible = menu.Visible,
             IsFrame = menu.IsFrame,
