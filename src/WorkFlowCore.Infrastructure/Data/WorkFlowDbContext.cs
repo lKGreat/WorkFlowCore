@@ -41,6 +41,8 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
     public DbSet<OperationLog> OperationLogs { get; set; }
     public DbSet<LoginLog> LoginLogs { get; set; }
     public DbSet<Notice> Notices { get; set; }
+    public DbSet<SysTask> SysTasks { get; set; }
+    public DbSet<SysTaskLog> SysTaskLogs { get; set; }
     
     // ABP Identity tables (required by IIdentityDbContext)
     public DbSet<IdentityUser> Users => Set<IdentityUser>();
@@ -346,6 +348,37 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
             b.HasIndex(n => n.Status);
             b.HasIndex(n => new { n.Status, n.Popup });
             b.HasIndex(n => n.CreationTime);
+        });
+
+        // 配置定时任务
+        builder.Entity<SysTask>(b =>
+        {
+            b.ToTable("SysTasks");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.Property(t => t.TaskName).HasMaxLength(100).IsRequired();
+            b.Property(t => t.TaskGroup).HasMaxLength(100).IsRequired();
+            b.Property(t => t.InvokeTarget).HasMaxLength(500).IsRequired();
+            b.Property(t => t.CronExpression).HasMaxLength(200).IsRequired();
+            b.Property(t => t.Remark).HasMaxLength(500);
+            b.HasIndex(t => t.Status);
+            b.HasIndex(t => new { t.TaskName, t.TaskGroup });
+        });
+
+        // 配置任务日志
+        builder.Entity<SysTaskLog>(b =>
+        {
+            b.ToTable("SysTaskLogs");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.Property(l => l.TaskName).HasMaxLength(100).IsRequired();
+            b.Property(l => l.TaskGroup).HasMaxLength(100).IsRequired();
+            b.Property(l => l.InvokeTarget).HasMaxLength(500).IsRequired();
+            b.Property(l => l.LogInfo).HasMaxLength(2000);
+            b.Property(l => l.Exception).HasMaxLength(4000);
+            b.HasIndex(l => l.TaskId);
+            b.HasIndex(l => l.Status);
+            b.HasIndex(l => l.CreationTime);
         });
     }
 }
