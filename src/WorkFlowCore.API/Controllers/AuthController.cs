@@ -6,6 +6,7 @@ using Volo.Abp.Domain.Repositories;
 using WorkFlowCore.Application.Common;
 using WorkFlowCore.Application.DTOs;
 using WorkFlowCore.Application.DTOs.Auth;
+using WorkFlowCore.Application.Services;
 using WorkFlowCore.Application.Services.Auth;
 using WorkFlowCore.Domain.Identity;
 using WorkFlowCore.Infrastructure.Services;
@@ -342,6 +343,59 @@ public class AuthController : BaseController
     }
 
     /// <summary>
+    /// 获取用户信息和权限（兼容ZrAdmin前端）
+    /// </summary>
+    [HttpGet("getInfo")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<GetInfoResult>>> GetInfo()
+    {
+        var userId = CurrentUser.Id!.Value;
+        var userQueryable = await _userRepository.GetQueryableAsync();
+        var user = await userQueryable.FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            return ApiResponse<GetInfoResult>.Fail("用户不存在").ToActionResult();
+        }
+
+        var menuService = HttpContext.RequestServices.GetRequiredService<IMenuService>();
+
+        // 获取用户权限列表
+        var permissions = await menuService.GetUserPermissionsAsync(userId);
+
+        // 获取用户角色列表（从ABP CurrentUser获取）
+        var roles = CurrentUser.Roles.ToList();
+        if (!roles.Any())
+        {
+            roles.Add("default");
+        }
+
+        var result = new GetInfoResult
+        {
+            User = MapToUserInfoDto(user),
+            Roles = roles,
+            Permissions = permissions
+        };
+
+        return ApiResponse<GetInfoResult>.Ok(result).ToActionResult();
+    }
+
+    /// <summary>
+    /// 获取路由信息（兼容ZrAdmin前端）
+    /// </summary>
+    [HttpGet("getRouters")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<List<RouterDto>>>> GetRouters()
+    {
+        var userId = CurrentUser.Id!.Value;
+        var menuService = HttpContext.RequestServices.GetRequiredService<IMenuService>();
+
+        var routers = await menuService.GetRoutersByRoleAsync(userId);
+
+        return ApiResponse<List<RouterDto>>.Ok(routers).ToActionResult();
+    }
+
+    /// <summary>
     /// 刷新Token
     /// </summary>
     [HttpPost("refresh")]
@@ -354,7 +408,7 @@ public class AuthController : BaseController
     }
 
     /// <summary>
-    /// 映射用户到DTO
+    /// 映射用户到UserDto
     /// </summary>
     private static UserDto MapToUserDto(AppUser user)
     {
@@ -366,6 +420,26 @@ public class AuthController : BaseController
             Email = user.Email ?? string.Empty,
             Phone = user.PhoneNumber ?? string.Empty,
             IsEnabled = user.Status == "0"
+        };
+    }
+
+    /// <summary>
+    /// 映射用户到UserInfoDto
+    /// </summary>
+    private static UserInfoDto MapToUserInfoDto(AppUser user)
+    {
+        return new UserInfoDto
+        {
+            UserId = user.Id.ToString(),
+            UserName = user.UserName ?? string.Empty,
+            NickName = user.NickName ?? string.Empty,
+            Avatar = null, // TODO: 从User表或其他地方获取头像
+            Email = user.Email ?? string.Empty,
+            PhoneNumber = user.PhoneNumber ?? string.Empty,
+            DepartmentId = null, // TODO: 从User表获取
+            DepartmentName = null, // TODO: 从Department表获取
+            Sex = null, // TODO: 从User表获取
+            Status = user.Status
         };
     }
 }
