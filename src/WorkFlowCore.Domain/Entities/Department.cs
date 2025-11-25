@@ -35,7 +35,12 @@ public class Department : FullAuditedAggregateRoot<long>, IMultiTenant
     public int OrderNum { get; set; }
 
     /// <summary>
-    /// 负责人
+    /// 负责人ID
+    /// </summary>
+    public long? ManagerId { get; set; }
+
+    /// <summary>
+    /// 负责人姓名
     /// </summary>
     public string? Leader { get; set; }
 
