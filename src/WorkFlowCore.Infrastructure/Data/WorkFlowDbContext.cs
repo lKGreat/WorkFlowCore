@@ -24,6 +24,7 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<User> WorkFlowUsers { get; set; }
     public DbSet<Department> Departments { get; set; }
+    public DbSet<Post> Posts { get; set; }
     public DbSet<Role> WorkFlowRoles { get; set; }
     public DbSet<ProcessDefinition> ProcessDefinitions { get; set; }
     public DbSet<ProcessInstance> ProcessInstances { get; set; }
@@ -127,6 +128,18 @@ public class WorkFlowDbContext : AbpDbContext<WorkFlowDbContext>, IIdentityDbCon
             b.ToTable("Departments");
             b.ConfigureByConvention();
             b.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        // 配置岗位
+        builder.Entity<Post>(b =>
+        {
+            b.ToTable("Posts");
+            b.ConfigureByConvention();
+            b.Property(e => e.Id).ValueGeneratedNever();
+            b.Property(p => p.PostCode).HasMaxLength(100).IsRequired();
+            b.Property(p => p.PostName).HasMaxLength(100).IsRequired();
+            b.Property(p => p.Status).HasMaxLength(10);
+            b.HasIndex(p => p.PostCode).IsUnique();
         });
 
         builder.Entity<Role>(b =>
