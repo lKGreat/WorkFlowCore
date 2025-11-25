@@ -180,6 +180,65 @@ public class SystemController : BaseController
 
         return ApiResponse<object?>.Ok(null, "密码修改成功").ToActionResult();
     }
+
+    /// <summary>
+    /// 上传头像
+    /// </summary>
+    [HttpPost("system/user/profile/avatar")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<AvatarUploadResult>>> UploadAvatar([FromForm(Name = "avatar")] IFormFile avatar)
+    {
+        if (avatar == null || avatar.Length == 0)
+        {
+            return ApiResponse<AvatarUploadResult>.Fail("请选择要上传的图片").ToActionResult();
+        }
+
+        // 验证文件类型
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        var extension = Path.GetExtension(avatar.FileName).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension))
+        {
+            return ApiResponse<AvatarUploadResult>.Fail("仅支持 jpg, jpeg, png, gif, webp 格式的图片").ToActionResult();
+        }
+
+        // 验证文件大小（2MB）
+        if (avatar.Length > 2 * 1024 * 1024)
+        {
+            return ApiResponse<AvatarUploadResult>.Fail("图片大小不能超过 2MB").ToActionResult();
+        }
+
+        // 保存文件
+        var userId = CurrentUser.Id!.Value;
+        var fileName = $"{userId}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
+        var uploadPath = Path.Combine("wwwroot", "uploads", "avatars");
+        
+        if (!Directory.Exists(uploadPath))
+        {
+            Directory.CreateDirectory(uploadPath);
+        }
+
+        var filePath = Path.Combine(uploadPath, fileName);
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await avatar.CopyToAsync(stream);
+        }
+
+        // 更新用户头像URL
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user != null)
+        {
+            var avatarUrl = $"/uploads/avatars/{fileName}";
+            user.Avatar = avatarUrl;
+            await _userManager.UpdateAsync(user);
+
+            return ApiResponse<AvatarUploadResult>.Ok(new AvatarUploadResult
+            {
+                ImgUrl = avatarUrl
+            }, "头像上传成功").ToActionResult();
+        }
+
+        return ApiResponse<AvatarUploadResult>.Fail("用户不存在").ToActionResult();
+    }
 }
 
 public class UpdateProfileInput
@@ -193,5 +252,10 @@ public class UpdatePasswordInput
 {
     public string OldPassword { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;
+}
+
+public class AvatarUploadResult
+{
+    public string ImgUrl { get; set; } = string.Empty;
 }
 
