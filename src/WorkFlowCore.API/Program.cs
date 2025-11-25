@@ -93,3 +93,6 @@ finally
     Log.Information("应用程序正在关闭...");
     await Log.CloseAndFlushAsync();
 }
+
+// 使 Program 类对测试项目可见
+public partial class Program { }

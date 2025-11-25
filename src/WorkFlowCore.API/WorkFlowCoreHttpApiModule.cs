@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Volo.Abp;
 using Volo.Abp.Account;
@@ -19,6 +20,7 @@ using WorkFlowCore.API.Middleware;
 using WorkFlowCore.Application;
 using WorkFlowCore.Application.Common;
 using WorkFlowCore.Application.Services.Sms;
+using WorkFlowCore.Engine.Extensions;
 using WorkFlowCore.Infrastructure;
 using WorkFlowCore.Infrastructure.Data;
 using WorkFlowCore.Infrastructure.Services;
@@ -78,9 +80,47 @@ public class WorkFlowCoreHttpApiModule : AbpModule
     {
         services.AddSwaggerGen(options =>
         {
-            //options.SwaggerDoc("v1", new OpenApiInfo { Title = "WorkFlow Core API", Version = "v1" });
+            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+            { 
+                Title = "WorkFlow Core API", 
+                Version = "v1",
+                Description = "工作流审批系统 RESTful API 文档"
+            });
             options.DocInclusionPredicate((docName, description) => true);
             options.CustomSchemaIds(type => type.FullName);
+
+            // 包含 XML 注释
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            if (File.Exists(xmlPath))
+            {
+                options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+            }
+
+            // 添加 JWT 认证支持
+            options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme. 输入: Bearer {token}",
+                Name = "Authorization",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                Scheme = "Bearer"
+            });
+
+            options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
         });
     }
 
@@ -265,6 +305,9 @@ public class WorkFlowCoreHttpApiModule : AbpModule
 
         // 注册当前用户服务（特殊服务，依赖 IHttpContextAccessor）
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // 注册工作流引擎服务
+        services.AddWorkflowEngine();
 
         // 其他服务已通过 ABP 约定自动注册（实现 IApplicationService 或 ITransientDependency 接口）
         // - ProcessDefinitionService, MenuService, AppUserService 等继承自 ApplicationService (自动注册为 Scoped)

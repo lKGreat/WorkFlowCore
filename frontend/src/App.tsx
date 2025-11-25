@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Spin } from 'antd';
 import AuthGuard from './components/AuthGuard';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './App.css';
 
 // 静态导入（首屏必需）
@@ -32,35 +33,37 @@ const PageLoading = () => (
 
 function App() {
   return (
-    <BrowserRouter>
-      <Suspense fallback={<PageLoading />}>
-        <Routes>
-          {/* 登录相关路由（无布局） */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/auth/bind" element={<ThirdPartyBind />} />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Suspense fallback={<PageLoading />}>
+          <Routes>
+            {/* 登录相关路由（无布局） */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/auth/bind" element={<ThirdPartyBind />} />
 
-          {/* 受保护路由 */}
-          <Route element={<AuthGuard />}>
-            {/* 带布局的路由（受保护） */}
-            <Route path="/" element={<Layout />}>
-              <Route index element={<ProcessDefinitionList />} />
-              <Route path="instances" element={<ProcessInstanceList />} />
-              <Route path="versions/:key" element={<VersionHistory />} />
-              <Route path="file-upload" element={<FileUploadDemo />} />
-              <Route path="system/user" element={<UserManagement />} />
-              <Route path="system/role" element={<RoleManagement />} />
+            {/* 受保护路由 */}
+            <Route element={<AuthGuard />}>
+              {/* 带布局的路由（受保护） */}
+              <Route path="/" element={<Layout />}>
+                <Route index element={<ProcessDefinitionList />} />
+                <Route path="instances" element={<ProcessInstanceList />} />
+                <Route path="versions/:key" element={<VersionHistory />} />
+                <Route path="file-upload" element={<FileUploadDemo />} />
+                <Route path="system/user" element={<UserManagement />} />
+                <Route path="system/role" element={<RoleManagement />} />
+              </Route>
+
+              {/* 全屏流程设计器（无布局，受保护） */}
+              <Route path="designer" element={<ProcessDesigner mode="create" />} />
+              <Route path="designer/:id" element={<ProcessDesigner mode="edit" />} />
             </Route>
 
-            {/* 全屏流程设计器（无布局，受保护） */}
-            <Route path="designer" element={<ProcessDesigner mode="create" />} />
-            <Route path="designer/:id" element={<ProcessDesigner mode="edit" />} />
-          </Route>
-
-          {/* 404重定向 */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+            {/* 404重定向 */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

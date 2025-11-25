@@ -1,0 +1,69 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Build Backend
+      run: |
+        dotnet restore
+        dotnet publish src/WorkFlowCore.API/WorkFlowCore.API.csproj \
+          --configuration Release \
+          --output ./publish/backend \
+          --no-restore
+
+    - name: Build Frontend
+      working-directory: ./frontend
+      run: |
+        npm ci
+        npm run build
+
+    - name: Create deployment package
+      run: |
+        mkdir -p ./deploy
+        cp -r ./publish/backend ./deploy/
+        cp -r ./frontend/dist ./deploy/frontend
+        tar -czf deployment-package.tar.gz -C ./deploy .
+
+    - name: Upload deployment package
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-package
+        path: deployment-package.tar.gz
+
+    # 以下步骤根据实际部署方式配置
+    # - name: Deploy to Server
+    #   uses: appleboy/scp-action@v0.1.7
+    #   with:
+    #     host: ${{ secrets.DEPLOY_HOST }}
+    #     username: ${{ secrets.DEPLOY_USER }}
+    #     key: ${{ secrets.DEPLOY_KEY }}
+    #     source: "deployment-package.tar.gz"
+    #     target: "/opt/workflowcore/"
+
+    - name: Deployment complete
+      run: echo "✅ Deployment package created successfully!"
+
