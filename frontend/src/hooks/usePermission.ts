@@ -1,34 +1,65 @@
-import { useAuthStore } from '../stores/authStore';
+import { usePermissionStore } from '../stores/permissionStore';
 
 /**
- * 权限控制Hook
+ * 权限检查Hook
  */
-export const usePermission = () => {
-  const { permissions } = useAuthStore();
+export function usePermission() {
+  const {
+    permissions,
+    roles,
+    hasPermission,
+    hasAnyPermission,
+    hasRole,
+    hasAnyRole
+  } = usePermissionStore();
 
-  const hasPermission = (permissionCode: string): boolean => {
-    if (!permissionCode) return true;
-    if (permissions.includes('*:*:*')) return true; // 超级管理员
-    return permissions.some(p => 
-      p === permissionCode || 
-      p === permissionCode.split(':').slice(0, 2).join(':') + ':*' ||
-      p.endsWith(':*')
-    );
+  /**
+   * 检查是否有指定权限
+   * @param permission 权限代码，如 "system:user:add"
+   */
+  const checkPermission = (permission: string | string[]): boolean => {
+    if (Array.isArray(permission)) {
+      return hasAnyPermission(permission);
+    }
+    return hasPermission(permission);
   };
 
-  const hasAnyPermission = (permissionCodes: string[]): boolean => {
-    return permissionCodes.some(code => hasPermission(code));
+  /**
+   * 检查是否有所有指定权限
+   * @param permissions 权限代码数组
+   */
+  const checkAllPermissions = (perms: string[]): boolean => {
+    return perms.every(p => hasPermission(p));
   };
 
-  const hasAllPermissions = (permissionCodes: string[]): boolean => {
-    return permissionCodes.every(code => hasPermission(code));
+  /**
+   * 检查是否有指定角色
+   * @param role 角色标识，如 "admin"
+   */
+  const checkRole = (role: string | string[]): boolean => {
+    if (Array.isArray(role)) {
+      return hasAnyRole(role);
+    }
+    return hasRole(role);
+  };
+
+  /**
+   * 检查是否有所有指定角色
+   * @param roles 角色标识数组
+   */
+  const checkAllRoles = (roleList: string[]): boolean => {
+    return roleList.every(r => hasRole(r));
   };
 
   return {
-    hasPermission,
-    hasAnyPermission,
-    hasAllPermissions,
-    permissions
+    permissions,
+    roles,
+    checkPermission,
+    checkAllPermissions,
+    checkRole,
+    checkAllRoles,
+    // 便捷方法
+    hasPermission: checkPermission,
+    hasRole: checkRole
   };
-};
-
+}
