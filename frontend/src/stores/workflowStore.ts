@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ProcessDefinition } from '../types/processDefinition.types';
+import type { ProcessDefinitionListItem as ProcessDefinition } from '../features/workflow/types';
 
 type WorkflowState = {
   // 当前选中的流程定义

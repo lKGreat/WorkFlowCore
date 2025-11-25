@@ -1,4 +1,5 @@
-import { Form, Input, Button, Space, FormInstance } from 'antd';
+import { Form, Input, Button, Space } from 'antd';
+import type { FormInstance } from 'antd';
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ReactNode } from 'react';
 

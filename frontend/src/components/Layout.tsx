@@ -4,7 +4,7 @@ import { FileTextOutlined, ApartmentOutlined, CloudUploadOutlined, UserOutlined,
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useRouterStore } from '../stores/routerStore';
-import { logout } from '../services/authService';
+import { authService } from '../features/auth/services/authService';
 import { removeToken } from '../utils/auth';
 
 const { Header, Sider, Content } = AntLayout;
@@ -57,7 +57,7 @@ export const Layout: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await authService.logout();
       removeToken();
       logoutStore();
       clearRoutes();

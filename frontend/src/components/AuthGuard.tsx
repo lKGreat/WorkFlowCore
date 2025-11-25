@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useAuthStore } from '../stores/authStore';
 import { useRouterStore } from '../stores/routerStore';
-import { getInfo, getRouters } from '../services/authService';
+import { authService } from '../features/auth/services/authService';
 
 /**
  * 路由守卫组件
@@ -48,14 +48,22 @@ const AuthGuard: React.FC = () => {
     isCheckingRef.current = true;
     try {
       // 获取用户信息
-      const userInfo = await getInfo();
-      setUserInfo(userInfo.user);
-      setRoles(userInfo.roles);
-      setPermissions(userInfo.permissions);
+      const userInfo = await authService.getCurrentUser();
+      // 转换为 authStore 需要的格式
+      setUserInfo({
+        userId: String(userInfo.id),
+        userName: userInfo.username,
+        nickName: userInfo.fullName,
+        email: userInfo.email,
+        status: '0', // TODO: 从后端获取状态
+      });
+      setRoles(userInfo.roles);  // 从响应中获取角色
+      setPermissions(userInfo.permissions);  // 从响应中获取权限
 
-      // 获取动态路由
-      const routers = await getRouters();
-      setRoutes(routers);
+      // TODO: 获取动态路由
+      // const routers = await authService.getRouters();
+      // setRoutes(routers);
+      setRoutes([]);
 
       setAuthenticated(true);
     } catch (error) {

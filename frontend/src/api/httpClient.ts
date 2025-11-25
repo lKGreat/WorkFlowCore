@@ -14,13 +14,40 @@ const httpClient: AxiosInstance = axios.create({
   }
 })
 
-// 请求拦截器 - 添加Token
+// 请求计数器（用于全局 Loading）
+let pendingRequests = 0
+
+// 动态导入 uiStore（避免循环依赖）
+let uiStoreModule: typeof import('../stores/uiStore') | null = null
+async function getUiStore() {
+  if (!uiStoreModule) {
+    uiStoreModule = await import('../stores/uiStore')
+  }
+  return uiStoreModule.useUiStore.getState()
+}
+
+// 请求拦截器 - 添加Token + Loading计数
 httpClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // 自动添加 Token
     const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // 增加请求计数（排除静默请求）
+    if (!config.headers['X-Silent']) {
+      pendingRequests++;
+      if (pendingRequests === 1) {
+        try {
+          const uiStore = await getUiStore();
+          uiStore.setGlobalLoading(true);
+        } catch {
+          // 如果 uiStore 加载失败，忽略
+        }
+      }
+    }
+    
     return config;
   },
   (error) => {
@@ -58,10 +85,30 @@ const buildApiErrorFromResponse = (
   })
 }
 
+// 减少请求计数
+async function decrementPending(config?: AxiosRequestConfig) {
+  if (!config?.headers?.['X-Silent']) {
+    pendingRequests = Math.max(0, pendingRequests - 1);
+    if (pendingRequests === 0) {
+      try {
+        const uiStore = await getUiStore();
+        uiStore.setGlobalLoading(false);
+      } catch {
+        // 如果 uiStore 加载失败，忽略
+      }
+    }
+  }
+}
+
 // 响应拦截器
 httpClient.interceptors.response.use(
-  (response) => response,
+  async (response) => {
+    await decrementPending(response.config);
+    return response;
+  },
   async (error: AxiosError<ApiResponse<unknown>>) => {
+    await decrementPending(error.config);
+    
     // 401未授权 - 跳转登录
     if (error.response?.status === 401) {
       const { removeToken } = await import('../utils/auth');
@@ -75,7 +122,11 @@ httpClient.interceptors.response.use(
         ? new ApiError('网络异常，请检查连接', { cause: error })
         : buildApiErrorFromResponse(error.response, '请求失败，请稍后重试', error)
 
-    showErrorMessage(apiError)
+    // 非静默请求显示错误提示
+    if (!error.config?.headers?.['X-Silent']) {
+      showErrorMessage(apiError)
+    }
+    
     return Promise.reject(apiError)
   }
 )
@@ -107,6 +158,16 @@ export const request = async <T>(config: AxiosRequestConfig): Promise<T> => {
     showErrorMessage(unknownError)
     throw unknownError
   }
+}
+
+/**
+ * 静默请求（不触发全局 Loading 和错误提示）
+ */
+export async function silentRequest<T>(config: AxiosRequestConfig): Promise<T> {
+  return request<T>({
+    ...config,
+    headers: { ...config.headers, 'X-Silent': 'true' }
+  });
 }
 
 export { httpClient }

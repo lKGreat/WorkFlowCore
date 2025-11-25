@@ -13,7 +13,7 @@ import type {
   ChunkUploadProgress,
   InitiateUploadRequest,
   FileAttachmentDto,
-} from '../types/file.types';
+} from '../features/file/types';
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_CONCURRENT_UPLOADS = 3; // 最大并发上传数

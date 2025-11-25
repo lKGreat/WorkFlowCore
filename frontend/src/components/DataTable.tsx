@@ -1,4 +1,5 @@
-import { Table, TableProps } from 'antd';
+import { Table } from 'antd';
+import type { TableProps } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 
 type DataTableProps<T> = TableProps<T> & {
